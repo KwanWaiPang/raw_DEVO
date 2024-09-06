@@ -139,6 +139,12 @@ The qualitative and quantitative results will be written to `results/DATASETNAME
 - [x] Code for simulation is released.
 
 
+#测试HKU过程
+~~~
+conda activate raw_devo
+python evals/eval_evs/eval_hku_evs.py --datapath=/home/gwp/DEVO/datasets/HKU_dataset --weights="/home/gwp/DEVO/DEVO.pth" --stride=1 --trials=1 --expname=gwphku
+~~~
+
 ## Citation
 If you find our work useful, please cite our paper:
 

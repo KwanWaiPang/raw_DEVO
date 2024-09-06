@@ -2,6 +2,8 @@ import os
 import torch
 from devo.config import cfg
 
+import sys
+sys.path.append('/home/gwp/raw_DEVO')
 from utils.load_utils import load_gt_us, hku_evs_iterator
 from utils.eval_utils import assert_eval_config, run_voxel
 from utils.eval_utils import log_results, write_raw_results, compute_median_results
