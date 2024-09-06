@@ -1,5 +1,11 @@
-#测试Stereo-HKU数据集
+# 测试Stereo-HKU数据集
 ~~~
 conda activate raw_devo
 python evals/eval_evs/eval_hku_evs.py --datapath=/home/gwp/DEVO/datasets/HKU_dataset --weights="/home/gwp/DEVO/DEVO.pth" --stride=1 --trials=1 --expname=gwphku
+~~~
+
+# 测试davis240c数据集
+~~~
+conda activate raw_devo
+python evals/eval_evs/eval_davis240c_evs.py --datapath=/media/lfl-data2/davis240c/ --weights="/home/gwp/DEVO/DEVO.pth" --stride=1 --trials=1 --expname=davis240c
 ~~~
