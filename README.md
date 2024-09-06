@@ -63,7 +63,7 @@ cd DEVO
 Then, create and activate the Anaconda environment
 ```bash
 conda env create -f environment.yml
-conda activate devo
+conda activate raw_devo
 ```
 
 Next, install the DEVO package

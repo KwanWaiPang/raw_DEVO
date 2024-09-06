@@ -1,4 +1,4 @@
-name: devo
+name: raw_devo
 channels:
   - pyg
   - pytorch
