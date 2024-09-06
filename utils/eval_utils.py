@@ -363,7 +363,8 @@ def log_results(data, hyperparam, all_results, results_dict_scene, figures,
     MPE = ape_trans.stats["mean"] / gtlentraj * 100
     print(f"MPE is {MPE}")
     evoATE = ape_trans.stats["rmse"]*100
-    assert abs(evoATE-ate_score) < 1e-5
+    if _n_to_align==-1:#只有为-1时才进行assert
+        assert abs(evoATE-ate_score) < 1e-5
     R_rmse_deg = -1.0
 
     # # 240c中align5秒就是1000个

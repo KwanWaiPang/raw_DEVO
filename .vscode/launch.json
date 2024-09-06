@@ -35,7 +35,7 @@
                 "--weights=/home/gwp/DEVO/DEVO.pth",
                 "--stride=1",
                 "--trials=1",
-                "--expname=boxes_6dof_debug_testt"
+                // "--expname=boxes_6dof_debug_testt"
             ]
         }
 
