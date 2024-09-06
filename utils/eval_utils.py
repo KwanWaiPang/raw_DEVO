@@ -311,9 +311,10 @@ def make_evo_traj(poses_N_x_7, tss_us):
     return traj_evo
 
 
-@torch.no_grad()            
+@torch.no_grad()
+#将rpg_eval置为false            
 def log_results(data, hyperparam, all_results, results_dict_scene, figures, 
-                plot=False, save=True, return_figure=False, rpg_eval=True, stride=1, 
+                plot=False, save=True, return_figure=False, rpg_eval=False, stride=1, 
                 calib1_eds=None, camID_tumvie=None, outdir=None, expname="", max_diff_sec=0.01):
     # results: dict of (scene, list of results)
     # all_results: list of all raw_results

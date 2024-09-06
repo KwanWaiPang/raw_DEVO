@@ -2,6 +2,12 @@ import os
 import torch
 from devo.config import cfg
 
+
+# 处理服务器中evo的可视化问题
+import evo
+from evo.tools.settings import SETTINGS
+SETTINGS['plot_backend'] = 'Agg'
+
 import sys
 sys.path.append('/home/gwp/raw_DEVO')
 from utils.load_utils import load_gt_us, hku_evs_iterator

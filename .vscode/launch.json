@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "stereo-HKU",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "evals/eval_evs/eval_hku_evs.py",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "2"
+            },
+            "args":[
+                "--datapath=/home/gwp/DEVO/datasets/HKU_dataset",
+                "--weights=/home/gwp/DEVO/DEVO.pth",
+                "--stride=1",
+                "--trials=1",
+                "--expname=gwphku_debug_test"
+            ]
+        }
+    ]
+}
