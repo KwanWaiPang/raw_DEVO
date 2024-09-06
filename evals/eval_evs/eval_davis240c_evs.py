@@ -57,7 +57,9 @@ def evaluate(config, args, net, train_step=None, datapath="", split_file=None,
             # 通过log_results函数来记录结果(用evo评估定位的精度)
             all_results, results_dict_scene, figures, outfolder = log_results(data, hyperparam, all_results, results_dict_scene, figures, 
                                                                    plot=plot, save=save, return_figure=return_figure, stride=stride,
-                                                                   expname=args.expname)
+                                                                   _n_to_align=1000,
+                                                                   expname=scene#args.expname
+                                                                   )
             
             if viz_flow:
                 viz_flow_inference(outfolder, flowdata)

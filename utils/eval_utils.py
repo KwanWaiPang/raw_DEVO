@@ -315,7 +315,7 @@ def make_evo_traj(poses_N_x_7, tss_us):
 #将rpg_eval置为false            
 def log_results(data, hyperparam, all_results, results_dict_scene, figures, 
                 plot=False, save=True, return_figure=False, rpg_eval=False, stride=1, 
-                calib1_eds=None, camID_tumvie=None, outdir=None, expname="", max_diff_sec=0.01):
+                calib1_eds=None, camID_tumvie=None, outdir=None, expname="", max_diff_sec=0.01,_n_to_align=-1):
     # results: dict of (scene, list of results)
     # all_results: list of all raw_results
 
@@ -351,13 +351,27 @@ def log_results(data, hyperparam, all_results, results_dict_scene, figures,
     # following https://github.com/arclab-hku/Event_based_VO-VIO-SLAM/issues/5
     evoGT = make_evo_traj(traj_GT, tss_GT_us)
     evoEst = make_evo_traj(traj_est, tss_est_us)
-    gtlentraj = evoGT.get_infos()["path length (m)"]
+    gtlentraj = evoGT.get_infos()["path length (m)"]#获取轨迹长度
     evoGT, evoEst = sync.associate_trajectories(evoGT, evoEst, max_diff=1)
-    ape_trans = main_ape.ape(copy.deepcopy(evoGT), copy.deepcopy(evoEst), pose_relation=metrics.PoseRelation.translation_part, align=True, correct_scale=True)
+    # ape_trans = main_ape.ape(copy.deepcopy(evoGT), copy.deepcopy(evoEst), pose_relation=metrics.PoseRelation.translation_part, align=True, correct_scale=True)
+    # 新增参数_n_to_align
+    ape_trans = main_ape.ape(copy.deepcopy(evoGT), copy.deepcopy(evoEst), pose_relation=metrics.PoseRelation.translation_part, align=True,n_to_align=_n_to_align, correct_scale=True)
+    # 用红色字体显示
+    print(f"\033[31m EVO结果：{ape_trans}\033[0m");
+    if _n_to_align!=-1:
+        print(f"align {_n_to_align} frames")
     MPE = ape_trans.stats["mean"] / gtlentraj * 100
+    print(f"MPE is {MPE}")
     evoATE = ape_trans.stats["rmse"]*100
     assert abs(evoATE-ate_score) < 1e-5
     R_rmse_deg = -1.0
+
+    # # 240c中align5秒就是1000个
+    # ape_trans_1000 = main_ape.ape(copy.deepcopy(evoGT), copy.deepcopy(evoEst), pose_relation=metrics.PoseRelation.translation_part, align=True, n_to_align=1000, correct_scale=True)
+    # # 用绿色字体显示
+    # print(f"\033[32m EVO结果 align 1000：{ape_trans_1000}\033[0m");
+    # MPE_1000 = ape_trans_1000.stats["mean"] / gtlentraj * 100
+    # print(f"MPE of align 1000 is {MPE_1000}")
 
     if save:
         Path(f"{outfolder}").mkdir(exist_ok=True)

@@ -21,7 +21,6 @@
                 "--expname=gwphku_debug_test"
             ]
         },
-
         {
             "name": "davis240c",
             "type": "debugpy",
