@@ -79,7 +79,7 @@ def process_seq_hku(indirs, side="left", DELTA_MS=None):
                 continue
 
         imgs = read_images_from_rosbag(bag, topics[imgtopic_idx], H=H, W=W)
-        imgs = [cv2.resize(img, (W, H)) for img in imgs]
+        imgs = [cv2.resize(img, (W, H)) for img in imgs] #每张图片都resize到260*346
         Kdist, distcoeffs = get_calib_hku(side)
 
         # undistorting images
