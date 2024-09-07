@@ -78,6 +78,7 @@ def process_dirs(indirs, side="left", DELTA_MS=None):
                 # continue
         #读取图片
         imgs = read_images_from_rosbag(bag, topics[imgtopic_idx], H=H, W=W)
+        #要resize图片
     
         # creating rectify map（进行去除失真）
         if side == "left":
@@ -175,8 +176,9 @@ def process_dirs(indirs, side="left", DELTA_MS=None):
         #     f.write(f"{(evs[i, 2] - t0_us):.04f} {int(evs[i, 0])} {int(evs[i, 1])} {int(evs[i, 3])}\n")
         # f.close()
 
-        raw_timestamp_h5outfile = os.path.join(indir, f"raw_timestamp_evs_{side}.h5")
-        write_evs_arr_to_h5(evs, raw_timestamp_h5outfile)#将events保存到h5文件中
+        # 下面要double check，由于涉及时间戳出现一些问题，故此还是保留相对时间吧！
+        # raw_timestamp_h5outfile = os.path.join(indir, f"raw_timestamp_evs_{side}.h5")
+        # write_evs_arr_to_h5(evs, raw_timestamp_h5outfile)#将events保存到h5文件中
 
         for ev in evs:
             ev[2] -= t0_us #减去起始时间,获得的就是相对时间
