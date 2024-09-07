@@ -99,6 +99,33 @@ def read_poses_from_rosbag(bag, posestopic, T_marker_cam0, T_cam0_cam1):
         progress_bar.update(1)
     return np.array(poses), tss_us_gt
 
+# 读取IMU数据
+def read_imu_from_rosbag(bag, imutopic):
+    progress_bar = tqdm.tqdm(total=bag.get_message_count(imutopic))
+
+    all_imu = []
+    
+    for topic, msg, t in bag.read_messages(imutopic):
+        acc_x = msg.linear_acceleration.x
+        acc_y = msg.linear_acceleration.y
+        acc_z = msg.linear_acceleration.z
+        w_x   = msg.angular_velocity.x
+        w_y   = msg.angular_velocity.y
+        w_z   = msg.angular_velocity.z
+        # timeimu = "%.0f" % (msg.header.stamp.to_sec()*1000000000) 
+        timeimu = msg.header.stamp.to_nsec()
+        all_imu.append([timeimu,w_x,w_y,w_z,acc_x,acc_y,acc_z])  
+                     
+        progress_bar.update(1)
+    return all_imu
+
+#获取ns时间戳
+def read_tss_ns_from_rosbag(bag, imgtopic):
+    tss_us = []
+    for topic, msg, t in bag.read_messages(imgtopic):
+        tss_us.append(msg.header.stamp.to_nsec())
+    return tss_us
+
 def read_calib_from_bag(bag, imtopic):
     for topic, msg, t in bag.read_messages(imtopic):
         K = msg.K

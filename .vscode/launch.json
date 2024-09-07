@@ -21,6 +21,21 @@
                 "--expname=gwphku_debug_test"
             ]
         },
+
+        {
+            "name": "pp_davis240c",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts/pp_davis240c.py",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "2"
+            },
+            "args":[
+                "--indir=/media/lfl-data2/davis240c/",
+            ]
+        },
+
         {
             "name": "davis240c",
             "type": "debugpy",
