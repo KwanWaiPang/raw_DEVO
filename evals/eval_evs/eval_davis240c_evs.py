@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
     # 人为设置一些参数
     args.save_trajectory = True
-    args.plot = True
+    args.plot = True #人为设置为True
     val_results, val_figures = evaluate(cfg, args, args.weights, datapath=args.datapath, split_file=args.val_split, trials=args.trials, \
                        plot=args.plot, save=args.save_trajectory, return_figure=args.return_figs, viz=args.viz,timing=args.timing, \
                         stride=args.stride, side=args.side, viz_flow=args.viz_flow)

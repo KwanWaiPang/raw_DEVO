@@ -307,7 +307,7 @@ def make_evo_traj(poses_N_x_7, tss_us):
     traj_evo = PoseTrajectory3D(
         positions_xyz=poses_N_x_7[:,:3],
         orientations_quat_wxyz=poses_N_x_7[:,3:],
-        timestamps=tss_us/1e6)
+        timestamps=tss_us/1e6)#转换为秒
     return traj_evo
 
 
