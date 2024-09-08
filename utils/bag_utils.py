@@ -8,6 +8,7 @@ import io
 import tqdm as tqdm
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+import cv2
 
 
 def read_first_evs_from_rosbag(bag, evtopic):
@@ -58,6 +59,33 @@ def read_images_from_rosbag(bag, imgtopic, H=180, W=240):
 
         if abs(H- msg.height) > 2 or abs(W-msg.width) > 2:
             print(f"WARNING: H, W mismatch: {msg.height}, {msg.width}, {H}, {W}")    
+
+        # if len(imgs) > 50: # TODO: remove!
+        #     break
+    return imgs
+
+def read_rgb_images_from_rosbag(bag, imgtopic, H=180, W=240):
+    imgs = []
+    
+    progress_bar = tqdm.tqdm(total=bag.get_message_count(imgtopic))
+    for topic, msg, t in bag.read_messages(imgtopic):
+        img_str = str(msg)
+        img_str = img_str[img_str.find("data")+6:]
+        img_str = img_str[1:-1].split(',')
+        pixel_values = [int(v) for v in img_str]
+        image_array = np.array(pixel_values, dtype=np.uint8)
+        image_array = image_array.reshape((msg.height, msg.width,3))
+
+        # 图片的高度和宽度是否和bag文件中的一致
+        if abs(H- msg.height) > 2 or abs(W-msg.width) > 2:
+            print(f"WARNING: H, W mismatch: {msg.height}, {msg.width}, {H}, {W}") 
+            image_array = cv2.resize(image_array, (W, H)) #不一致就必须要resize  
+
+        imgs.append(image_array)
+        progress_bar.update(1)
+
+        # if abs(H- msg.height) > 2 or abs(W-msg.width) > 2:
+        #     print(f"WARNING: H, W mismatch: {msg.height}, {msg.width}, {H}, {W}")    
 
         # if len(imgs) > 50: # TODO: remove!
         #     break

@@ -281,7 +281,7 @@ def compute_ms_to_idx(tss_ns, ms_start=0):
     
     return ms_to_idx
 
-def write_evs_arr_to_h5(evs, h5outfile, xidx=0, yidx=1, tssidx=2, polidx=3):
+def write_evs_arr_to_h5(evs, h5outfile, xidx=0, yidx=1, tssidx=2, polidx=3, ms_start=0):
     ef_out = h5py.File(h5outfile, 'w')
     ef_out.clear()
     num_events = evs.shape[0]
@@ -295,7 +295,7 @@ def write_evs_arr_to_h5(evs, h5outfile, xidx=0, yidx=1, tssidx=2, polidx=3):
     event_grp["t"][:] = evs[:, tssidx]
     event_grp["p"][:] = evs[:, polidx]
 
-    ms_to_idx = compute_ms_to_idx(evs[:, tssidx]*1e3)#转为ms
+    ms_to_idx = compute_ms_to_idx(evs[:, tssidx]*1e3,ms_start)#转为ms
     ef_out.create_dataset('ms_to_idx', shape=len(ms_to_idx), dtype="<u8")
     ef_out["ms_to_idx"][:] = ms_to_idx
 

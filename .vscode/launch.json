@@ -37,7 +37,7 @@
         },
 
         {
-            "name": "davis240c",
+            "name": "evaluate_davis240c",
             "type": "debugpy",
             "request": "launch",
             "program": "evals/eval_evs/eval_davis240c_evs.py",
@@ -52,7 +52,21 @@
                 "--trials=1",
                 // "--expname=boxes_6dof_debug_testt"
             ]
-        }
+        },
+
+        {
+            "name": "pp_mono_hku",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts/pp_mono_hku.py",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "2"
+            },
+            "args":[
+                "--indir=/media/lfl-data2/Mono_HKU/",
+            ]
+        },
 
     ]
 }
