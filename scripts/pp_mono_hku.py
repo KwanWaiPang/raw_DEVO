@@ -16,7 +16,7 @@ import math
 import sys
 sys.path.append('/home/gwp/raw_DEVO')
 
-from utils.bag_utils import read_H_W_from_bag, read_tss_us_from_rosbag, read_images_from_rosbag, read_evs_from_rosbag, read_calib_from_bag, read_t0us_evs_from_rosbag, read_poses_from_rosbag, read_imu_from_rosbag, read_tss_ns_from_rosbag, read_rgb_images_from_rosbag
+from utils.bag_utils import read_H_W_from_bag, read_tss_us_from_rosbag, read_images_from_rosbag, read_evs_from_rosbag, read_calib_from_bag, read_t0us_evs_from_rosbag, read_poses_from_rosbag, read_imu_from_rosbag, read_tss_ns_from_rosbag, read_rgb_images_from_rosbag, read_and_saved_evs_from_rosbag
 
 # 处理服务器中evo的可视化问题
 import evo
@@ -147,70 +147,77 @@ def process_dirs(indirs, DELTA_MS=None):
         write_imu(all_imu2,os.path.join(indir, f"dvxplorer_imu_data.csv"))
 
         # TODO: write events (and also substract t0_evs)
-        evs = read_evs_from_rosbag(bag, loweventtopic, H=H, W=W)#读取events
-        f = open(os.path.join(indir, f"evs_davis346.txt"), 'w')#将events保存到txt文件中
-        for i in range(evs.shape[0]):
-            f.write(f"{evs[i, 2]} {int(evs[i, 0])} {int(evs[i, 1])} {int(evs[i, 3])}\n")
-        f.close()
+        # evs = read_evs_from_rosbag(bag, loweventtopic, H=H, W=W)#读取events
+        # f = open(os.path.join(indir, f"evs_davis346.txt"), 'w')#将events保存到txt文件中
+        # for i in range(evs.shape[0]):
+        #     f.write(f"{evs[i, 2]} {int(evs[i, 0])} {int(evs[i, 1])} {int(evs[i, 3])}\n")
+        # f.close()
 
-        for ev in evs:
-            ev[2] -= t0_us #减去起始时间,获得的就是相对时间
-        h5outfile = os.path.join(indir, f"evs_davis346.h5")#注意此文件只保留了相对时间
-        # ms_to_ns = 1000000
-        # ms_start=int(math.floor(t0_us) / ms_to_ns)
-        # h5outfile = os.path.join(indir, f"evs_davis346.h5",ms_start)#注意此文件保留的是绝对时间
-        write_evs_arr_to_h5(evs, h5outfile)#将events保存到h5文件中
+        #保存events数据（davis346）
+        h5outfile_davis346 = os.path.join(indir, f"evs_davis346.h5")
+        read_and_saved_evs_from_rosbag(bag, loweventtopic, H=H, W=W, t0=t0_us,h5outfile=h5outfile_davis346)
+
+        # for ev in evs:
+        #     ev[2] -= t0_us #减去起始时间,获得的就是相对时间
+        # h5outfile = os.path.join(indir, f"evs_davis346.h5")#注意此文件只保留了相对时间
+        # # ms_to_ns = 1000000
+        # # ms_start=int(math.floor(t0_us) / ms_to_ns)
+        # # h5outfile = os.path.join(indir, f"evs_davis346.h5",ms_start)#注意此文件保留的是绝对时间
+        # write_evs_arr_to_h5(evs, h5outfile)#将events保存到h5文件中
 
         distcoeffs=dist_coeffs#获取失真参数
         
         rectify_map, K_new_evs = compute_rmap_vector(Kdist, distcoeffs, indir, "davis346", H=H, W=W)
         assert np.all(abs(K_new_evs - K_new)<1e-5) 
 
-        ######## [DEBUG] viz undistorted events
-        outvizfolder = os.path.join(indir, f"evs_davis346_undist")#创建一个文件夹，用于存放处理后的图片
-        os.makedirs(outvizfolder, exist_ok=True)
-        pbar = tqdm.tqdm(total=len(tss_imgs_us)-1)
-        for (ts_idx, ts_us) in enumerate(tss_imgs_us):
-            if ts_idx == len(tss_imgs_us) - 1:
-                break
+        # ######## [DEBUG] viz undistorted events
+        # outvizfolder = os.path.join(indir, f"evs_davis346_undist")#创建一个文件夹，用于存放处理后的图片
+        # os.makedirs(outvizfolder, exist_ok=True)
+        # pbar = tqdm.tqdm(total=len(tss_imgs_us)-1)
+        # for (ts_idx, ts_us) in enumerate(tss_imgs_us):
+        #     if ts_idx == len(tss_imgs_us) - 1:
+        #         break
             
-            if DELTA_MS is None:
-                evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < tss_imgs_us[ts_idx+1]))[0]
-            else:
-                evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < ts_us + DELTA_MS*1e3))[0]
+        #     if DELTA_MS is None:
+        #         evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < tss_imgs_us[ts_idx+1]))[0]
+        #     else:
+        #         evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < ts_us + DELTA_MS*1e3))[0]
                 
-            if len(evs_idx) == 0:
-                print(f"no events in range {ts_us*1e-3} - {tss_imgs_us[ts_idx+1]*1e-3} milisecs")
-                continue
-            evs_batch = np.array(evs[evs_idx, :]).copy()
+        #     if len(evs_idx) == 0:
+        #         print(f"no events in range {ts_us*1e-3} - {tss_imgs_us[ts_idx+1]*1e-3} milisecs")
+        #         continue
+        #     evs_batch = np.array(evs[evs_idx, :]).copy()
 
 
-            img = render(evs_batch[:, 0], evs_batch[:, 1], evs_batch[:, 3], H, W)
-            imfnmae = os.path.join(outvizfolder, f"{ts_idx:06d}_dist.png")
-            cv2.imwrite(imfnmae, img)
+        #     img = render(evs_batch[:, 0], evs_batch[:, 1], evs_batch[:, 3], H, W)
+        #     imfnmae = os.path.join(outvizfolder, f"{ts_idx:06d}_dist.png")
+        #     cv2.imwrite(imfnmae, img)
 
-            rect = rectify_map[evs_batch[:, 1].astype(np.int32), evs_batch[:, 0].astype(np.int32)]
-            img = render(rect[:, 0], rect[:, 1], evs_batch[:, 3], H, W)
+        #     rect = rectify_map[evs_batch[:, 1].astype(np.int32), evs_batch[:, 0].astype(np.int32)]
+        #     img = render(rect[:, 0], rect[:, 1], evs_batch[:, 3], H, W)
             
-            imfnmae = imfnmae.split(".")[0] + ".png"
-            cv2.imwrite(os.path.join(outvizfolder, imfnmae), img)
+        #     imfnmae = imfnmae.split(".")[0] + ".png"
+        #     cv2.imwrite(os.path.join(outvizfolder, imfnmae), img)
 
-            pbar.update(1)
-        ############ [end DEBUG] viz undistorted events
+        #     pbar.update(1)
+        # ############ [end DEBUG] viz undistorted events
 
 
         # ! 下面是可视化dcxplorer及保存数据的代码
         higheventtopic='/dvxplorer/events'
-        evs = read_evs_from_rosbag(bag, higheventtopic, H=H, W=W)#读取events
-        f = open(os.path.join(indir, f"evs_dvxplorer.txt"), 'w')#将events保存到txt文件中
-        for i in range(evs.shape[0]):
-            f.write(f"{evs[i, 2]} {int(evs[i, 0])} {int(evs[i, 1])} {int(evs[i, 3])}\n")
-        f.close()
+        # evs = read_evs_from_rosbag(bag, higheventtopic, H=H, W=W)#读取events
+        # f = open(os.path.join(indir, f"evs_dvxplorer.txt"), 'w')#将events保存到txt文件中
+        # for i in range(evs.shape[0]):
+        #     f.write(f"{evs[i, 2]} {int(evs[i, 0])} {int(evs[i, 1])} {int(evs[i, 3])}\n")
+        # f.close()
 
-        for ev in evs:
-            ev[2] -= t0_us #减去起始时间,获得的就是相对时间
-        h5outfile = os.path.join(indir, f"evs_dvxplorer.h5")#注意此文件保留的是相对时间
-        write_evs_arr_to_h5(evs, h5outfile)#将events保存到h5文件中
+        h5outfile_dvxplorer = os.path.join(indir, f"evs_dvxplorer.h5")
+        read_and_saved_evs_from_rosbag(bag, higheventtopic, H=H, W=W, t0=t0_us,h5outfile=h5outfile_dvxplorer)
+
+        # for ev in evs:
+        #     ev[2] -= t0_us #减去起始时间,获得的就是相对时间
+        # h5outfile = os.path.join(indir, f"evs_dvxplorer.h5")#注意此文件保留的是相对时间
+        # write_evs_arr_to_h5(evs, h5outfile)#将events保存到h5文件中
         
         intrinsics = [566.672, 566.73, 337.847, 259.916, 
                     -0.372447, 0.153642, -0.000399186, -0.000157163]
@@ -230,37 +237,37 @@ def process_dirs(indirs, DELTA_MS=None):
         f.write(f"{K_new_evs[0,0]} {K_new_evs[1,1]} {K_new_evs[0,2]} {K_new_evs[1,2]}")
         f.close()
 
-        ######## [DEBUG] viz undistorted events
-        outvizfolder = os.path.join(indir, f"evs_dvxplorer_undist")#创建一个文件夹，用于存放处理后的图片
-        os.makedirs(outvizfolder, exist_ok=True)
-        pbar = tqdm.tqdm(total=len(tss_imgs_us)-1)
-        for (ts_idx, ts_us) in enumerate(tss_imgs_us):
-            if ts_idx == len(tss_imgs_us) - 1:
-                break
+        # ######## [DEBUG] viz undistorted events
+        # outvizfolder = os.path.join(indir, f"evs_dvxplorer_undist")#创建一个文件夹，用于存放处理后的图片
+        # os.makedirs(outvizfolder, exist_ok=True)
+        # pbar = tqdm.tqdm(total=len(tss_imgs_us)-1)
+        # for (ts_idx, ts_us) in enumerate(tss_imgs_us):
+        #     if ts_idx == len(tss_imgs_us) - 1:
+        #         break
             
-            if DELTA_MS is None:
-                evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < tss_imgs_us[ts_idx+1]))[0]
-            else:
-                evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < ts_us + DELTA_MS*1e3))[0]
+        #     if DELTA_MS is None:
+        #         evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < tss_imgs_us[ts_idx+1]))[0]
+        #     else:
+        #         evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < ts_us + DELTA_MS*1e3))[0]
                 
-            if len(evs_idx) == 0:
-                print(f"no events in range {ts_us*1e-3} - {tss_imgs_us[ts_idx+1]*1e-3} milisecs")
-                continue
-            evs_batch = np.array(evs[evs_idx, :]).copy()
+        #     if len(evs_idx) == 0:
+        #         print(f"no events in range {ts_us*1e-3} - {tss_imgs_us[ts_idx+1]*1e-3} milisecs")
+        #         continue
+        #     evs_batch = np.array(evs[evs_idx, :]).copy()
 
 
-            img = render(evs_batch[:, 0], evs_batch[:, 1], evs_batch[:, 3], H, W)
-            imfnmae = os.path.join(outvizfolder, f"{ts_idx:06d}_dist.png")
-            cv2.imwrite(imfnmae, img)
+        #     img = render(evs_batch[:, 0], evs_batch[:, 1], evs_batch[:, 3], H, W)
+        #     imfnmae = os.path.join(outvizfolder, f"{ts_idx:06d}_dist.png")
+        #     cv2.imwrite(imfnmae, img)
 
-            rect = rectify_map[evs_batch[:, 1].astype(np.int32), evs_batch[:, 0].astype(np.int32)]
-            img = render(rect[:, 0], rect[:, 1], evs_batch[:, 3], H, W)
+        #     rect = rectify_map[evs_batch[:, 1].astype(np.int32), evs_batch[:, 0].astype(np.int32)]
+        #     img = render(rect[:, 0], rect[:, 1], evs_batch[:, 3], H, W)
             
-            imfnmae = imfnmae.split(".")[0] + ".png"
-            cv2.imwrite(os.path.join(outvizfolder, imfnmae), img)
+        #     imfnmae = imfnmae.split(".")[0] + ".png"
+        #     cv2.imwrite(os.path.join(outvizfolder, imfnmae), img)
 
-            pbar.update(1)
-        ############ [end DEBUG] viz undistorted events
+        #     pbar.update(1)
+        # ############ [end DEBUG] viz undistorted events
 
         print(f"Finshied processing {indir}\n\n")
   
@@ -276,29 +283,36 @@ if __name__ == "__main__":
     roots = []
     for root, dirs, files in os.walk(args.indir):
         for f in files:
-            if f.endswith(".bag"):#如果是rosbag文件
-            # if f=="vicon_aggressive_hdr.bag": #debug used
-                p = os.path.join(root, f"{f.split('.')[0]}")
-                #如果存在，先删除
-                if os.path.exists(p):
-                    os.system(f"rm -rf {p}")
-                os.makedirs(p, exist_ok=True)#创建文件夹（对于每个都创建一个文件夹）
-                if p not in roots:
-                    roots.append(p)#将文件夹的路径加入到roots中
+            try:
+                if f.endswith(".bag"):#如果是rosbag文件
+                # if f=="vicon_dark1.bag": #debug used
+                    p = os.path.join(root, f"{f.split('.')[0]}")
+                    #如果存在，先删除
+                    if os.path.exists(p):
+                        os.system(f"rm -rf {p}")
+                    os.makedirs(p, exist_ok=True)#创建文件夹（对于每个都创建一个文件夹）
+                    if p not in roots:
+                        roots.append(p)#将文件夹的路径加入到roots中
+                    process_dirs([p])
+            except:
+                print(f"Error processing {f}")
+                print(f"Error processing {f}")
+                print(f"Error processing {f}")
+                continue
 
     
-    cors = 4 #3
-    assert cors <= 9
-    roots_split = np.array_split(roots, cors)
+    # cors = 4 #3
+    # assert cors <= 9
+    # roots_split = np.array_split(roots, cors)
 
-    # 进行多线程处理，每个线程处理几个文件夹
-    processes = []
-    for i in range(cors):
-        p = multiprocessing.Process(target=process_dirs, args=(roots_split[i].tolist(), ))
-        p.start()
-        processes.append(p)
+    # # 进行多线程处理，每个线程处理几个文件夹
+    # processes = []
+    # for i in range(cors):
+    #     p = multiprocessing.Process(target=process_dirs, args=(roots_split[i].tolist(), ))
+    #     p.start()
+    #     processes.append(p)
         
-    for p in processes:
-        p.join()
+    # for p in processes:
+    #     p.join()
 
     print(f"Finished processing all Mono-HKU scenes")

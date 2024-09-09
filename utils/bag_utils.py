@@ -9,6 +9,8 @@ import tqdm as tqdm
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import cv2
+from utils.event_utils import compute_ms_to_idx
+import h5py
 
 
 def read_first_evs_from_rosbag(bag, evtopic):
@@ -34,6 +36,68 @@ def read_evs_from_rosbag(bag, evtopic, H=180, W=240):
 
         # if len(evs) > 1000:
         #     break
+    return np.array(evs) # (N, 4)
+
+
+def read_and_saved_evs_from_rosbag(bag, evtopic, H=180, W=240, t0=0,h5outfile='evs.h5'):
+    print(f"Start reading evs from {evtopic}")
+
+    evs = []
+    progress_bar = tqdm.tqdm(total=bag.get_message_count(evtopic))
+    first_message = True  # 用来检测第一组数据的标志
+
+    for topic, msg, t in bag.read_messages(evtopic):
+        events = np.array([[ev.x, ev.y, ev.ts.to_nsec()/1e3-t0, 1 if ev.polarity else 0] for ev in msg.events])
+
+        # 保存evs到文件
+        if first_message==True:
+            with h5py.File(h5outfile, 'w') as f:
+                first_message = False
+
+                event_grp = f.create_group('/events')
+                event_grp.create_dataset('x', shape=(0,), maxshape=(None,), dtype='<u2')
+                event_grp.create_dataset('y', shape=(0,), maxshape=(None,), dtype='<u2')
+                event_grp.create_dataset('t', shape=(0,), maxshape=(None,), dtype='<u4')
+                event_grp.create_dataset('p', shape=(0,), maxshape=(None,), dtype='|u1')
+                event_grp.create_dataset('ms_to_idx', shape=(0,), maxshape=(None,), dtype="<u8")
+
+                num_events = events.shape[0]
+                event_grp['x'].resize(event_grp['x'].shape[0] + num_events, axis=0)
+                event_grp['y'].resize(event_grp['y'].shape[0] + num_events, axis=0)
+                event_grp['t'].resize(event_grp['t'].shape[0] + num_events, axis=0)
+                event_grp['p'].resize(event_grp['p'].shape[0] + num_events, axis=0)
+                event_grp['x'][-num_events:] = events[:, 0]
+                event_grp['y'][-num_events:] = events[:, 1]
+                event_grp['t'][-num_events:] = events[:, 2]
+                event_grp['p'][-num_events:] = events[:, 3]
+
+                ms_to_idx = compute_ms_to_idx(events[:, 2]*1e3,0)#转回ns
+                num_ms = ms_to_idx.shape[0]
+                event_grp['ms_to_idx'].resize(event_grp['ms_to_idx'].shape[0] + num_ms, axis=0)
+                event_grp["ms_to_idx"][-num_ms:] = ms_to_idx
+
+        elif first_message==False:
+            with h5py.File(h5outfile, 'a') as f:
+                event_grp = f['/events']
+
+                num_events = events.shape[0]
+                event_grp['x'].resize(event_grp['x'].shape[0] + num_events, axis=0)
+                event_grp['y'].resize(event_grp['y'].shape[0] + num_events, axis=0)
+                event_grp['t'].resize(event_grp['t'].shape[0] + num_events, axis=0)
+                event_grp['p'].resize(event_grp['p'].shape[0] + num_events, axis=0)
+                event_grp['x'][-num_events:] = events[:, 0]
+                event_grp['y'][-num_events:] = events[:, 1]
+                event_grp['t'][-num_events:] = events[:, 2]
+                event_grp['p'][-num_events:] = events[:, 3]
+
+                ms_to_idx = compute_ms_to_idx(events[:, 2]*1e3,0)#转回ns
+                num_ms = ms_to_idx.shape[0]
+                event_grp['ms_to_idx'].resize(event_grp['ms_to_idx'].shape[0] + num_ms, axis=0)
+                event_grp["ms_to_idx"][-num_ms:] = ms_to_idx
+
+
+        progress_bar.update(1)
+
     return np.array(evs) # (N, 4)
 
 
