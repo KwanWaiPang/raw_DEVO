@@ -16,7 +16,7 @@ import math
 import sys
 sys.path.append('/home/gwp/raw_DEVO')
 
-from utils.bag_utils import read_H_W_from_bag, read_tss_us_from_rosbag, read_images_from_rosbag, read_evs_from_rosbag, read_calib_from_bag, read_t0us_evs_from_rosbag, read_poses_from_rosbag, read_imu_from_rosbag, read_tss_ns_from_rosbag, read_rgb_images_from_rosbag, read_and_saved_evs_from_rosbag
+from utils.bag_utils import read_H_W_from_bag, read_tss_us_from_rosbag, read_images_from_rosbag, read_evs_from_rosbag, read_calib_from_bag, read_t0us_evs_from_rosbag, read_poses_from_rosbag, read_imu_from_rosbag, read_tss_ns_from_rosbag, read_rgb_images_from_rosbag, read_and_saved_evs_from_rosbag, read_evs_from_rosbag_witht0
 
 # 处理服务器中evo的可视化问题
 import evo
@@ -146,9 +146,16 @@ def process_dirs(indirs, DELTA_MS=None):
         write_gt_stamped(poses, tss_gt_us, os.path.join(indir, f"gt_stamped_us.txt"))#保存真值pose(此处跟上面不一样是相对时间)
 
         # TODO: write events (and also substract t0_evs)
+        # 清空imgs，释放内存
+        del imgs
+        #清空poses，释放内存
+        del poses        
         #保存events数据（davis346）
         h5outfile_davis346 = os.path.join(indir, f"evs_davis346.h5")#保存events数据的路径
-        read_and_saved_evs_from_rosbag(bag, loweventtopic, H=H, W=W, t0=t0_us,h5outfile=h5outfile_davis346)#读取events数据并保存到h5文件中
+        evs = read_evs_from_rosbag_witht0(bag, loweventtopic, t0_us=t0_us, H=H, W=W)
+        write_evs_arr_to_h5(evs, h5outfile_davis346)
+        del evs  # 清空evs，释放内存
+        # read_and_saved_evs_from_rosbag(bag, loweventtopic, H=H, W=W, t0=t0_us,h5outfile=h5outfile_davis346)#读取events数据并保存到h5文件中
 
         distcoeffs=dist_coeffs#获取失真参数（跟相机一样的~）
         
@@ -162,7 +169,10 @@ def process_dirs(indirs, DELTA_MS=None):
 
         #也是读的同时保存
         h5outfile_dvxplorer = os.path.join(indir, f"evs_dvxplorer.h5")
-        read_and_saved_evs_from_rosbag(bag, higheventtopic, H=H, W=W, t0=t0_us,h5outfile=h5outfile_dvxplorer)
+        evs_dvxplorer = read_evs_from_rosbag_witht0(bag, higheventtopic, t0_us=t0_us, H=H, W=W)
+        write_evs_arr_to_h5(evs_dvxplorer, h5outfile_dvxplorer)
+        del evs_dvxplorer  # 清空evs_dvxplorer，释放内存
+        # read_and_saved_evs_from_rosbag(bag, higheventtopic, H=H, W=W, t0=t0_us,h5outfile=h5outfile_dvxplorer)
         
         # 高分辨事件相机的内参
         dvsplorer_intrinsics = [566.672, 566.73, 337.847, 259.916, 
@@ -205,20 +215,20 @@ if __name__ == "__main__":
     roots = []
     for root, dirs, files in os.walk(args.indir):
         for f in files:
-            try:
-                if f.endswith(".bag"):#如果是rosbag文件
-                # if f=="vicon_dark1.bag": #debug used
-                    p = os.path.join(root, f"{f.split('.')[0]}")
-                    #如果存在，先删除
-                    if os.path.exists(p):
-                        os.system(f"rm -rf {p}")
-                    os.makedirs(p, exist_ok=True)#创建文件夹（对于每个都创建一个文件夹）
-                    if p not in roots:
-                        roots.append(p)#将文件夹的路径加入到roots中
-                    process_dirs([p])
-            except:
-                print(f"\033[31m Error processing {f} \033[0m")
-                continue
+            # try:
+            # if f.endswith(".bag"):#如果是rosbag文件
+            if f=="vicon_dark1.bag": #debug used
+                p = os.path.join(root, f"{f.split('.')[0]}")
+                #如果存在，先删除
+                if os.path.exists(p):
+                    os.system(f"rm -rf {p}")
+                os.makedirs(p, exist_ok=True)#创建文件夹（对于每个都创建一个文件夹）
+                if p not in roots:
+                    roots.append(p)#将文件夹的路径加入到roots中
+                process_dirs([p])
+            # except:
+            #     print(f"\033[31m Error processing {f} \033[0m")
+            #     continue
 
     
     # cors = 4 #3

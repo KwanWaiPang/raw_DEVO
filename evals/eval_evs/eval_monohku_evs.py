@@ -23,6 +23,11 @@ def evaluate(config, args, net, train_step=None, datapath="", split_file=None,
     dataset_name = "monohku_evs"
     assert side == "davis346" or side == "dvxplorer"
 
+    if side == "dvxplorer":
+        H, W = 480, 640
+    else:
+        H, W = 260, 346
+
     # 若配置文件为空，则使用默认配置文件
     if config is None:
         config = cfg

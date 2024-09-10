@@ -39,6 +39,23 @@ def read_evs_from_rosbag(bag, evtopic, H=180, W=240):
     return np.array(evs) # (N, 4)
 
 
+def read_evs_from_rosbag_witht0(bag, evtopic, t0_us=0, H=180, W=240):
+    print(f"Start reading evs from {evtopic}")
+
+    evs = []
+    progress_bar = tqdm.tqdm(total=bag.get_message_count(evtopic))
+    for topic, msg, t in bag.read_messages(evtopic):
+        for ev in msg.events:
+            p = 1 if ev.polarity else 0
+            evs.append([ev.x, ev.y, ev.ts.to_nsec()/1e3-t0_us, p])#减去t0_us
+            # assert ev.x < W and ev.y < H # DEBUG
+        progress_bar.update(1)
+
+        # if len(evs) > 1000:
+        #     break
+    return np.array(evs) # (N, 4)
+
+
 def read_and_saved_evs_from_rosbag(bag, evtopic, H=180, W=240, t0=0,h5outfile='evs.h5'):
     print(f"Start reading evs from {evtopic}")
 
@@ -76,10 +93,10 @@ def read_and_saved_evs_from_rosbag(bag, evtopic, H=180, W=240, t0=0,h5outfile='e
             event_grp['t'][-num_events:] = evs[:, 2]
             event_grp['p'][-num_events:] = evs[:, 3]
 
-            ms_to_idx = last_index+compute_ms_to_idx(evs[:, 2]*1e3-last_t*1e3,0)#转回ns(以上一次截止的时间为基准)
-            num_ms = ms_to_idx.shape[0]
-            f['ms_to_idx'].resize(f['ms_to_idx'].shape[0] + num_ms-1, axis=0)
-            f["ms_to_idx"][-(num_ms-1):] = ms_to_idx[1:]#将新的ms_to_idx添加到文件中
+            ms_to_idx = last_index+compute_ms_to_idx((evs[:, 2]*1e3-last_t*1e3),0)#转回ns(以上一次截止的时间为基准)
+            num_ms = ms_to_idx.shape[0]-1 #去掉第一个0
+            f['ms_to_idx'].resize(f['ms_to_idx'].shape[0] + num_ms, axis=0)
+            f["ms_to_idx"][-num_ms:] = ms_to_idx[1:]#将新的ms_to_idx添加到文件中
             last_index=f["ms_to_idx"][-1]
             last_t=evs[:, 2][-1]
 
