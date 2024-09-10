@@ -19,4 +19,6 @@ conda activate raw_devo
 
 python scripts/pp_mono_hku.py --indir=/media/lfl-data2/Mono_HKU/
 
+python evals/eval_evs/eval_monohku_evs.py --datapath=/media/lfl-data2/Mono_HKU/ --weights="/home/gwp/DEVO/DEVO.pth" --stride=1 --trials=1 --expname=mono_hku
+
 ~~~

@@ -45,58 +45,45 @@ def read_and_saved_evs_from_rosbag(bag, evtopic, H=180, W=240, t0=0,h5outfile='e
     evs = []
     progress_bar = tqdm.tqdm(total=bag.get_message_count(evtopic))
     first_message = True  # 用来检测第一组数据的标志
+    last_index=0;
+    last_t=0;
 
-    for topic, msg, t in bag.read_messages(evtopic):
-        events = np.array([[ev.x, ev.y, ev.ts.to_nsec()/1e3-t0, 1 if ev.polarity else 0] for ev in msg.events])
+    with h5py.File(h5outfile, 'w') as f:
+        for topic, msg, t in bag.read_messages(evtopic):
+            evs = np.array([[ev.x, ev.y, ev.ts.to_nsec()/1e3-t0, 1 if ev.polarity else 0] for ev in msg.events])
 
-        # 保存evs到文件
-        if first_message==True:
-            with h5py.File(h5outfile, 'w') as f:
+            # 保存evs到文件
+            if first_message==True:
                 first_message = False
-
+                # 初始化并创建
                 event_grp = f.create_group('/events')
                 event_grp.create_dataset('x', shape=(0,), maxshape=(None,), dtype='<u2')
                 event_grp.create_dataset('y', shape=(0,), maxshape=(None,), dtype='<u2')
                 event_grp.create_dataset('t', shape=(0,), maxshape=(None,), dtype='<u4')
                 event_grp.create_dataset('p', shape=(0,), maxshape=(None,), dtype='|u1')
-                event_grp.create_dataset('ms_to_idx', shape=(0,), maxshape=(None,), dtype="<u8")
-
-                num_events = events.shape[0]
-                event_grp['x'].resize(event_grp['x'].shape[0] + num_events, axis=0)
-                event_grp['y'].resize(event_grp['y'].shape[0] + num_events, axis=0)
-                event_grp['t'].resize(event_grp['t'].shape[0] + num_events, axis=0)
-                event_grp['p'].resize(event_grp['p'].shape[0] + num_events, axis=0)
-                event_grp['x'][-num_events:] = events[:, 0]
-                event_grp['y'][-num_events:] = events[:, 1]
-                event_grp['t'][-num_events:] = events[:, 2]
-                event_grp['p'][-num_events:] = events[:, 3]
-
-                ms_to_idx = compute_ms_to_idx(events[:, 2]*1e3,0)#转回ns
-                num_ms = ms_to_idx.shape[0]
-                event_grp['ms_to_idx'].resize(event_grp['ms_to_idx'].shape[0] + num_ms, axis=0)
-                event_grp["ms_to_idx"][-num_ms:] = ms_to_idx
-
-        elif first_message==False:
-            with h5py.File(h5outfile, 'a') as f:
+                f.create_dataset('ms_to_idx', shape=(0,), maxshape=(None,), dtype="<u8")
+                f['ms_to_idx'].resize(1, axis=0)
+                f["ms_to_idx"][-1:] = 0#一开始将0添加到文件中
+            elif first_message==False:
                 event_grp = f['/events']
+            num_events = evs.shape[0]
+            event_grp['x'].resize(event_grp['x'].shape[0] + num_events, axis=0)
+            event_grp['y'].resize(event_grp['y'].shape[0] + num_events, axis=0)
+            event_grp['t'].resize(event_grp['t'].shape[0] + num_events, axis=0)
+            event_grp['p'].resize(event_grp['p'].shape[0] + num_events, axis=0)
+            event_grp['x'][-num_events:] = evs[:, 0]
+            event_grp['y'][-num_events:] = evs[:, 1]
+            event_grp['t'][-num_events:] = evs[:, 2]
+            event_grp['p'][-num_events:] = evs[:, 3]
 
-                num_events = events.shape[0]
-                event_grp['x'].resize(event_grp['x'].shape[0] + num_events, axis=0)
-                event_grp['y'].resize(event_grp['y'].shape[0] + num_events, axis=0)
-                event_grp['t'].resize(event_grp['t'].shape[0] + num_events, axis=0)
-                event_grp['p'].resize(event_grp['p'].shape[0] + num_events, axis=0)
-                event_grp['x'][-num_events:] = events[:, 0]
-                event_grp['y'][-num_events:] = events[:, 1]
-                event_grp['t'][-num_events:] = events[:, 2]
-                event_grp['p'][-num_events:] = events[:, 3]
+            ms_to_idx = last_index+compute_ms_to_idx(evs[:, 2]*1e3-last_t*1e3,0)#转回ns(以上一次截止的时间为基准)
+            num_ms = ms_to_idx.shape[0]
+            f['ms_to_idx'].resize(f['ms_to_idx'].shape[0] + num_ms-1, axis=0)
+            f["ms_to_idx"][-(num_ms-1):] = ms_to_idx[1:]#将新的ms_to_idx添加到文件中
+            last_index=f["ms_to_idx"][-1]
+            last_t=evs[:, 2][-1]
 
-                ms_to_idx = compute_ms_to_idx(events[:, 2]*1e3,0)#转回ns
-                num_ms = ms_to_idx.shape[0]
-                event_grp['ms_to_idx'].resize(event_grp['ms_to_idx'].shape[0] + num_ms, axis=0)
-                event_grp["ms_to_idx"][-num_ms:] = ms_to_idx
-
-
-        progress_bar.update(1)
+            progress_bar.update(1)
 
     return np.array(evs) # (N, 4)
 
@@ -142,7 +129,7 @@ def read_rgb_images_from_rosbag(bag, imgtopic, H=180, W=240):
 
         # 图片的高度和宽度是否和bag文件中的一致
         if abs(H- msg.height) > 2 or abs(W-msg.width) > 2:
-            print(f"WARNING: H, W mismatch: {msg.height}, {msg.width}, {H}, {W}") 
+            print(f"WARNING: H, W mismatch: {msg.height}, {msg.width}, and resize to {H}, {W}") 
             image_array = cv2.resize(image_array, (W, H)) #不一致就必须要resize  
 
         imgs.append(image_array)

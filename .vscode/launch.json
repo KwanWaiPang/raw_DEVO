@@ -22,19 +22,19 @@
             ]
         },
 
-        {
-            "name": "pp_davis240c",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "scripts/pp_davis240c.py",
-            "console": "integratedTerminal",
-            "env": {
-                "CUDA_VISIBLE_DEVICES": "2"
-            },
-            "args":[
-                "--indir=/media/lfl-data2/davis240c/",
-            ]
-        },
+        // {
+        //     "name": "pp_davis240c",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "program": "scripts/pp_davis240c.py",
+        //     "console": "integratedTerminal",
+        //     "env": {
+        //         "CUDA_VISIBLE_DEVICES": "2"
+        //     },
+        //     "args":[
+        //         "--indir=/media/lfl-data2/davis240c/",
+        //     ]
+        // },
 
         {
             "name": "evaluate_davis240c",
@@ -65,6 +65,25 @@
             },
             "args":[
                 "--indir=/media/lfl-data2/Mono_HKU/",
+            ]
+        },
+
+        {
+            "name": "mono_hku",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "evals/eval_evs/eval_monohku_evs.py",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "2"
+            },
+            "args":[
+                "--datapath=/media/lfl-data2/Mono_HKU/",
+                "--weights=/home/gwp/DEVO/DEVO.pth",
+                "--val_split=splits/monohku/monohku_val_debug.txt",
+                "--stride=1",
+                "--trials=1",
+                "--side=davis346"
             ]
         },
 
