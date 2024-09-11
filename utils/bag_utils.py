@@ -62,16 +62,22 @@ def read_and_saved_evs_from_rosbag(bag, evtopic, H=180, W=240, t0=0,h5outfile='e
     evs = []
     progress_bar = tqdm.tqdm(total=bag.get_message_count(evtopic))
     first_message = True  # 用来检测第一组数据的标志
-    last_index=0;
-    last_t=0;
 
     with h5py.File(h5outfile, 'w') as f:
         for topic, msg, t in bag.read_messages(evtopic):
             evs = np.array([[ev.x, ev.y, ev.ts.to_nsec()/1e3-t0, 1 if ev.polarity else 0] for ev in msg.events])
 
+            if not (evs[:, 2] >= 0).all():
+                progress_bar.update(1)
+                continue
+            
+            # make sure event timestamps is in ascending order
+            if np.diff(evs[:, 2]).min() < 0:
+                sorted_ied = np.argsort(evs[:, 2])
+                evs = evs[sorted_ied]
+
             # 保存evs到文件
             if first_message==True:
-                first_message = False
                 # 初始化并创建
                 event_grp = f.create_group('/events')
                 event_grp.create_dataset('x', shape=(0,), maxshape=(None,), dtype='<u2')
@@ -79,8 +85,8 @@ def read_and_saved_evs_from_rosbag(bag, evtopic, H=180, W=240, t0=0,h5outfile='e
                 event_grp.create_dataset('t', shape=(0,), maxshape=(None,), dtype='<u4')
                 event_grp.create_dataset('p', shape=(0,), maxshape=(None,), dtype='|u1')
                 f.create_dataset('ms_to_idx', shape=(0,), maxshape=(None,), dtype="<u8")
-                f['ms_to_idx'].resize(1, axis=0)
-                f["ms_to_idx"][-1:] = 0#一开始将0添加到文件中
+                last_ms_end = evs[:, 2][0] // 1e3
+                index_bias = 0
             elif first_message==False:
                 event_grp = f['/events']
             num_events = evs.shape[0]
@@ -93,13 +99,21 @@ def read_and_saved_evs_from_rosbag(bag, evtopic, H=180, W=240, t0=0,h5outfile='e
             event_grp['t'][-num_events:] = evs[:, 2]
             event_grp['p'][-num_events:] = evs[:, 3]
 
-            ms_to_idx = last_index+compute_ms_to_idx((evs[:, 2]*1e3-last_t*1e3),0)#转回ns(以上一次截止的时间为基准)
-            num_ms = ms_to_idx.shape[0]-1 #去掉第一个0
+            # ms_to_idx = last_index+compute_ms_to_idx((evs[:, 2]*1e3-last_t*1e3), ms_start=num_ms)#转回ns(以上一次截止的时间为基准)
+            ms_to_idx = compute_ms_to_idx((evs[:, 2]*1e3), ms_start=last_ms_end)#转回ns(以上一次截止的时间为基准)
+            last_ms_end = last_ms_end + ms_to_idx.shape[0] - 1  # Advoid lack of previous events
+            if not first_message:
+                ms_to_idx = ms_to_idx[1:]
+            
+            num_ms = ms_to_idx.shape[0]  # -1 #去掉第一个0
             f['ms_to_idx'].resize(f['ms_to_idx'].shape[0] + num_ms, axis=0)
-            f["ms_to_idx"][-num_ms:] = ms_to_idx[1:]#将新的ms_to_idx添加到文件中
-            last_index=f["ms_to_idx"][-1]
-            last_t=evs[:, 2][-1]
+            f["ms_to_idx"][-num_ms:] = ms_to_idx + index_bias  #将新的ms_to_idx添加到文件中
 
+            # f["ms_to_idx"][-num_ms:] = ms_to_idx[1:]#将新的ms_to_idx添加到文件中
+            # last_index=f["ms_to_idx"][-1]
+            index_bias += evs[:, 2].shape[0]
+            if first_message:
+                first_message = False
             progress_bar.update(1)
 
     return np.array(evs) # (N, 4)
@@ -155,8 +169,6 @@ def read_rgb_images_from_rosbag(bag, imgtopic, H=180, W=240):
         # if abs(H- msg.height) > 2 or abs(W-msg.width) > 2:
         #     print(f"WARNING: H, W mismatch: {msg.height}, {msg.width}, {H}, {W}")    
 
-        # if len(imgs) > 50: # TODO: remove!
-        #     break
     return imgs
 
 
@@ -229,10 +241,14 @@ def read_calib_from_bag(bag, imtopic):
     return K
 
 
-def read_t0us_evs_from_rosbag(bag, evtopic):
+def read_t0us_evs_from_rosbag(bag, evtopic, t0us_start=0):
+    has_read = False
     for topic, msg, t in bag.read_messages(evtopic):
         for ev in msg.events:
-            t0_us = ev.ts.to_nsec()/1e3
+            t0_us = ev.ts.to_nsec() / 1e3
+            if t0_us >= t0us_start:
+                has_read = True
+                break
+        if has_read == True:
             break
-        break
     return t0_us

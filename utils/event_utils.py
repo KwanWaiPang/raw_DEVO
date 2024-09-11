@@ -273,11 +273,18 @@ def compute_ms_to_idx(tss_ns, ms_start=0):
 
     ms_end = int(math.floor(tss_ns.max()) / ms_to_ns)
     assert ms_end >= ms_start
+
+    evs_t_min = tss_ns.min()
+    assert evs_t_min >= ms_start*ms_to_ns
+
     ms_window = np.arange(ms_start, ms_end + 1, 1).astype(np.uint64)
     ms_to_idx = np.searchsorted(tss_ns, ms_window * ms_to_ns, side="left", sorter=np.argsort(tss_ns))
     
-    assert np.all(np.asarray([(tss_ns[ms_to_idx[ms]] >= ms*ms_to_ns) for ms in ms_window]))
-    assert np.all(np.asarray([(tss_ns[ms_to_idx[ms]-1] < ms*ms_to_ns) for ms in ms_window if ms_to_idx[ms] >= 1]))
+    assert np.all(np.asarray([(tss_ns[ms_to_idx[idx]] >= ms_window[idx]*ms_to_ns) for idx in range(len(ms_window))]))
+    assert np.all(np.asarray([(tss_ns[ms_to_idx[idx]-1] < ms_window[idx]*ms_to_ns) for idx in range(len(ms_window)) if ms_to_idx[idx] >= 1]))
+
+    # assert np.all(np.asarray([(tss_ns[ms_to_idx[ms]] >= ms*ms_to_ns) for ms in ms_window]))
+    # assert np.all(np.asarray([(tss_ns[ms_to_idx[ms]-1] < ms*ms_to_ns) for ms in ms_window if ms_to_idx[ms] >= 1]))
     
     return ms_to_idx
 
