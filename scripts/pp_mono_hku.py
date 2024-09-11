@@ -121,10 +121,10 @@ def process_dirs(indirs, DELTA_MS=None):
         assert sorted(tss_imgs_us) == tss_imgs_us#确保时间戳是有序的
 
 
-        # ts_imgs_ns = read_tss_ns_from_rosbag(bag, imagetopic)#获取图片的时间戳(纳秒为单位)
-        # ts_imgs_ns = ts_imgs_ns[img_start_idx:]
+        ts_imgs_ns = read_tss_ns_from_rosbag(bag, imagetopic)#获取图片的时间戳(纳秒为单位)
+        ts_imgs_ns = ts_imgs_ns[img_start_idx:]
 
-        ts_imgs_ns = [t * 1e3 for t in tss_imgs_us]  # 将微秒转换为纳秒
+        # ts_imgs_ns = [t * 1e3 for t in tss_imgs_us]  # 将微秒转换为纳秒(此处可能会导致存在科学计数法，待解决！)
         assert len(ts_imgs_ns) == len(imgs)
         # 保存原始的图片的时间（纳秒级别）
         f = open(os.path.join(indir, f"raw_tss_imgs_ns_davis346.txt"), 'w')#注意这里保存的时间单位是ns并且是原始的时间

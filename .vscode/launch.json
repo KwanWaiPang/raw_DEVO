@@ -54,19 +54,19 @@
             ]
         },
 
-        {
-            "name": "pp_mono_hku",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "scripts/pp_mono_hku.py",
-            "console": "integratedTerminal",
-            "env": {
-                "CUDA_VISIBLE_DEVICES": "2"
-            },
-            "args":[
-                "--indir=/media/lfl-data2/Mono_HKU/",
-            ]
-        },
+        // {
+        //     "name": "pp_mono_hku",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "program": "scripts/pp_mono_hku.py",
+        //     "console": "integratedTerminal",
+        //     "env": {
+        //         "CUDA_VISIBLE_DEVICES": "2"
+        //     },
+        //     "args":[
+        //         "--indir=/media/lfl-data2/Mono_HKU/",
+        //     ]
+        // },
 
         {
             "name": "mono_hku",
