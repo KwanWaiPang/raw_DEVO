@@ -35,7 +35,7 @@ def evaluate(config, args, net, train_step=None, datapath="", split_file=None,
     
     # 读取场景的名称    
     scenes = open(split_file).read().split()
-    print("the number of scenes is", len(scenes),"the input scenes are: ", scenes)
+    print("the number of scenes is", len(scenes),"the input scenes are: ", scenes, "the type of camera is: ", side)
 
     results_dict_scene, figures = {}, {}
     all_results = []
@@ -63,7 +63,7 @@ def evaluate(config, args, net, train_step=None, datapath="", split_file=None,
             all_results, results_dict_scene, figures, outfolder = log_results(data, hyperparam, all_results, results_dict_scene, figures, 
                                                                    plot=plot, save=save, return_figure=return_figure, stride=stride,
                                                                    _n_to_align=251,
-                                                                   expname=scene#args.expname
+                                                                   expname=f"{scene}_{side}"#args.expname
                                                                    )
             
             if viz_flow:
