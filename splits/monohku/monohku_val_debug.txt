@@ -1,4 +1,3 @@
-vicon_dark2
-vicon_darktolight1
-vicon_darktolight2
-vicon_hdr1
+vicon_hdr2
+vicon_hdr3
+vicon_hdr4
