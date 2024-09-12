@@ -83,7 +83,7 @@
                 "--val_split=splits/monohku/monohku_val_debug.txt",
                 "--stride=1",
                 "--trials=1",
-                "--side=dvxplorer"
+                "--side=davis346"
             ]
         },
 
