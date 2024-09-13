@@ -87,5 +87,19 @@
             ]
         },
 
+        // {
+        //     "name": "pp_stereo_hku",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "program": "scripts/pp_stereo_hku.py",
+        //     "console": "integratedTerminal",
+        //     "env": {
+        //         "CUDA_VISIBLE_DEVICES": "2"
+        //     },
+        //     "args":[
+        //         "--indir=/media/lfl-data2/Steroe_HKU/",
+        //     ]
+        // },
+
     ]
 }

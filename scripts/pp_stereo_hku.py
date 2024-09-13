@@ -7,13 +7,31 @@ import glob
 import multiprocessing
 
 import h5py
+import sys
+sys.path.append('/home/gwp/raw_DEVO')
+
+# 处理服务器中evo的可视化问题
+import evo
+from evo.tools.settings import SETTINGS
+SETTINGS['plot_backend'] = 'Agg'
+from evo.tools import plot
+
 from utils.load_utils import compute_rmap_vector
 from utils.event_utils import write_evs_arr_to_h5
 from utils.viz_utils import render
 import rosbag
-from utils.bag_utils import read_H_W_from_bag, read_tss_us_from_rosbag, read_images_from_rosbag, read_evs_from_rosbag, read_calib_from_bag, read_t0us_evs_from_rosbag, read_poses_from_rosbag
+from utils.bag_utils import read_H_W_from_bag, read_tss_us_from_rosbag, read_images_from_rosbag, read_evs_from_rosbag, read_calib_from_bag, read_t0us_evs_from_rosbag, read_poses_from_rosbag,read_tss_ns_from_rosbag,read_imu_from_rosbag
 
 H, W = 260, 346
+
+def write_imu(imu, outfile):
+    with open(outfile, 'w') as f:
+        f.write("#timestamp [ns],w_RS_S_x [rad s^-1],w_RS_S_y [rad s^-1],w_RS_S_z [rad s^-1],a_RS_S_x [m s^-2],a_RS_S_y [m s^-2],a_RS_S_z [m s^-2]\n")
+        for pose in imu:
+            # f.write(f"{pose} ")
+            #将 pose 列表中的每个元素转换为字符串并以逗号连接成一个字符串，从而避免输出带有方括号的列表形式。
+            f.write(",".join(map(str, pose)))
+            f.write("\n")
 
 def write_gt_stamped(poses, tss_us_gt, outfile):
     with open(outfile, 'w') as f:
@@ -51,7 +69,7 @@ def get_calib_hku(side): # hku uses davis
 def process_seq_hku(indirs, side="left", DELTA_MS=None):
     for indir in indirs: 
         seq = indir.split("/")[-1]
-        print(f"\n\n HKU: Undistorting {seq} evs & rgb")
+        print(f"\n\n HKU: Undistorting {seq} evs & rgb & IMU & GT")
 
         inbag = os.path.join(indir, f"../{seq}.bag")
         bag = rosbag.Bag(inbag, "r")
@@ -65,18 +83,20 @@ def process_seq_hku(indirs, side="left", DELTA_MS=None):
         else:
             raise NotImplementedError
 
+        #创建一个文件夹，用于存放去除失真后的图片
         imgdirout = os.path.join(indir, f"images_undistorted_{side}")
-        Hbag, Wbag = read_H_W_from_bag(bag, topics[imgtopic_idx])
+        Hbag, Wbag = read_H_W_from_bag(bag, topics[imgtopic_idx])#获取图片的高和宽
         assert (Hbag == H and Wbag == W)
 
         if not os.path.exists(imgdirout):
             os.makedirs(imgdirout)
         else:
-            img_list_undist = [os.path.join(indir, imgdirout, im) for im in sorted(os.listdir(imgdirout)) if im.endswith(".png")]
-            if bag.get_message_count(topics[imgtopic_idx]) == len(img_list_undist):
-                print(f"\n\nWARNING **** Images already undistorted. Skipping {indir} ***** \n\n")
-                assert os.path.isfile(os.path.join(indir, f"rectify_map_{side}.h5"))
-                continue
+            raise NotImplementedError #如果文件夹存在，则报错（每次都会重新生成的！）
+            # img_list_undist = [os.path.join(indir, imgdirout, im) for im in sorted(os.listdir(imgdirout)) if im.endswith(".png")]
+            # if bag.get_message_count(topics[imgtopic_idx]) == len(img_list_undist):
+            #     print(f"\n\nWARNING **** Images already undistorted. Skipping {indir} ***** \n\n")
+            #     assert os.path.isfile(os.path.join(indir, f"rectify_map_{side}.h5"))
+            #     continue
 
         imgs = read_images_from_rosbag(bag, topics[imgtopic_idx], H=H, W=W)
         imgs = [cv2.resize(img, (W, H)) for img in imgs] #每张图片都resize到260*346
@@ -96,9 +116,9 @@ def process_seq_hku(indirs, side="left", DELTA_MS=None):
             img = cv2.remap(img, img_mapx, img_mapy, cv2.INTER_CUBIC)
             cv2.imwrite(os.path.join(imgdirout, f"{i:012d}.png"), img)
             pbar.update(1)
-        imgs = []
+        # imgs = [] # free memory
 
-        # writing pose to file
+        # writing pose to file(写真实位姿到文件中)
         posetopic ='/cpy_uav/viconros/odometry'
         if side == "left":
             T_cam0_cam1 = np.eye(4)
@@ -116,15 +136,31 @@ def process_seq_hku(indirs, side="left", DELTA_MS=None):
                                  [0.0, 0.0, 0.0, 1.0]])) 
 
         tss_imgs_us = read_tss_us_from_rosbag(bag, topics[imgtopic_idx])
-        # assert len(tss_imgs_us) == len(imgs)
+        assert len(tss_imgs_us) == len(imgs)
+        ts_imgs_ns = read_tss_ns_from_rosbag(bag, topics[imgtopic_idx])#获取图片的时间戳(纳秒为单位)
+        assert len(ts_imgs_ns) == len(imgs)
+        imgs = [] # free memory
+        # 保存原始的图片的时间（纳秒级别）
+        f = open(os.path.join(indir, f"raw_tss_imgs_ns_{side}.txt"), 'w')#注意这里保存的时间单位是ns并且是原始的时间
+        for t in ts_imgs_ns:
+            f.write(f"{t}\n")
+        f.close()
+
         poses, tss_gt_us = read_poses_from_rosbag(bag, posetopic, T_marker_cam0, T_cam0_cam1=T_cam0_cam1)
+        write_gt_stamped(poses, tss_gt_us, os.path.join(indir, f"raw_gt_stamped_us.txt"))#保存真值pose（注意此时还是微妙为单位）
+
+        # 读取第一个事件的时间戳
         t0_evs = read_t0us_evs_from_rosbag(bag, topics[evtopic_idx])
         assert sorted(tss_imgs_us) == tss_imgs_us
         assert sorted(tss_gt_us) == tss_gt_us
 
         t0_us = np.minimum(np.minimum(tss_gt_us[0], tss_imgs_us[0]), t0_evs)
-        tss_imgs_us = [t - t0_us for t in tss_imgs_us]
+        f = open(os.path.join(indir, f"t0_us.txt"), 'w')
+        f.write(f"{t0_us}\n")#将起始时间保存到文件中
+        f.close()
 
+        # 保存图像的相对时间（微妙为单位）
+        tss_imgs_us = [t - t0_us for t in tss_imgs_us]
         # saving tss
         f = open(os.path.join(indir, f"tss_imgs_us_{side}.txt"), 'w')
         for t in tss_imgs_us:
@@ -144,43 +180,48 @@ def process_seq_hku(indirs, side="left", DELTA_MS=None):
         rectify_map, K_new_evs = compute_rmap_vector(Kdist, distcoeffs, indir, side, H=H, W=W)
         assert np.all(abs(K_new_evs - K_new)<1e-5) 
 
-        ######## [DEBUG] viz undistorted events
-        outvizfolder = os.path.join(indir, f"evs_{side}_undist")
-        os.makedirs(outvizfolder, exist_ok=True)
-        pbar = tqdm.tqdm(total=len(tss_imgs_us)-1)
-        for (ts_idx, ts_us) in enumerate(tss_imgs_us):
-            if ts_idx == len(tss_imgs_us) - 1:
-                break
+        # ######## [DEBUG] viz undistorted events
+        # outvizfolder = os.path.join(indir, f"evs_{side}_undist")
+        # os.makedirs(outvizfolder, exist_ok=True)
+        # pbar = tqdm.tqdm(total=len(tss_imgs_us)-1)
+        # for (ts_idx, ts_us) in enumerate(tss_imgs_us):
+        #     if ts_idx == len(tss_imgs_us) - 1:
+        #         break
             
-            if DELTA_MS is None:
-                evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < tss_imgs_us[ts_idx+1]))[0]
-            else:
-                evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < ts_us + DELTA_MS*1e3))[0]
+        #     if DELTA_MS is None:
+        #         evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < tss_imgs_us[ts_idx+1]))[0]
+        #     else:
+        #         evs_idx = np.where((evs[:, 2] >= ts_us) & (evs[:, 2] < ts_us + DELTA_MS*1e3))[0]
                 
-            if len(evs_idx) == 0:
-                print(f"no events in range {ts_us*1e-3} - {tss_imgs_us[ts_idx+1]*1e-3} milisecs")
-                continue
-            evs_batch = np.array(evs[evs_idx, :]).copy()
+        #     if len(evs_idx) == 0:
+        #         print(f"no events in range {ts_us*1e-3} - {tss_imgs_us[ts_idx+1]*1e-3} milisecs")
+        #         continue
+        #     evs_batch = np.array(evs[evs_idx, :]).copy()
 
 
-            img = render(evs_batch[:, 0], evs_batch[:, 1], evs_batch[:, 3], H, W)
-            imfnmae = os.path.join(outvizfolder, f"{ts_idx:06d}_dist.png")
-            cv2.imwrite(imfnmae, img)
+        #     img = render(evs_batch[:, 0], evs_batch[:, 1], evs_batch[:, 3], H, W)
+        #     imfnmae = os.path.join(outvizfolder, f"{ts_idx:06d}_dist.png")
+        #     cv2.imwrite(imfnmae, img)
 
-            rect = rectify_map[evs_batch[:, 1].astype(np.int32), evs_batch[:, 0].astype(np.int32)]
-            img = render(rect[:, 0], rect[:, 1], evs_batch[:, 3], H, W)
+        #     rect = rectify_map[evs_batch[:, 1].astype(np.int32), evs_batch[:, 0].astype(np.int32)]
+        #     img = render(rect[:, 0], rect[:, 1], evs_batch[:, 3], H, W)
             
-            imfnmae = imfnmae.split(".")[0] + ".png"
-            cv2.imwrite(os.path.join(outvizfolder, imfnmae), img)
+        #     imfnmae = imfnmae.split(".")[0] + ".png"
+        #     cv2.imwrite(os.path.join(outvizfolder, imfnmae), img)
 
-            pbar.update(1)
-        ############ [end DEBUG] viz undistorted events
+        #     pbar.update(1)
+        # ############ [end DEBUG] viz undistorted events
+
+        #保存IMU数据
+        imu1topic='/davis_left/imu'
+        all_imu1=read_imu_from_rosbag(bag, imu1topic)
+        write_imu(all_imu1,os.path.join(indir, f"{side}_imu_data.csv"))
 
         print(f"Finshied processing {indir}\n\n")
   
     
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="PP HKU data in dir")
+    parser = argparse.ArgumentParser(description="PP Stereo HKU data in dir")
     parser.add_argument(
         "--indir", help="Input image directory.", default=""
     )
@@ -190,13 +231,18 @@ if __name__ == "__main__":
     for root, dirs, files in os.walk(args.indir):
         for f in files:
             if f.endswith(".bag"):
+            # if f=="HKU_aggressive_rotation.bag": #debug used
                 p = os.path.join(root, f"{f.split('.')[0]}")
-                os.makedirs(p, exist_ok=True)
+                #如果存在，先删除
+                if os.path.exists(p):
+                    os.system(f"rm -rf {p}")
+                os.makedirs(p, exist_ok=True)#创建文件夹（对于每个都创建一个文件夹）
+
                 if p not in roots:
                     roots.append(p)
 
     
-    cors = 4
+    cors = 2 #4
     assert cors <= 9
     roots_split = np.array_split(roots, cors)
 
@@ -209,6 +255,6 @@ if __name__ == "__main__":
     for p in processes:
         p.join()
 
-    print(f"Finished processing all HKU scenes")
+    print(f"Finished processing all Stereo HKU scenes")
 
 
