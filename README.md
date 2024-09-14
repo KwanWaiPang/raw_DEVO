@@ -30,3 +30,10 @@ conda activate raw_devo
 
 python scripts/pp_stereo_hku.py --indir=/media/lfl-data2/Steroe_HKU/
 ~~~
+
+# 处理Vector数据集
+～～～
+conda activate raw_devo
+
+python scripts/pp_vector_rosbag.py --indir=/media/lfl-data2/VECtor/
+～～～

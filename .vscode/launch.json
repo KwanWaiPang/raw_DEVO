@@ -101,5 +101,19 @@
         //     ]
         // },
 
+        // {
+        //     "name": "pp_vector",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "program": "scripts/pp_vector_rosbag.py",
+        //     "console": "integratedTerminal",
+        //     "env": {
+        //         "CUDA_VISIBLE_DEVICES": "2"
+        //     },
+        //     "args":[
+        //         "--indir=/media/lfl-data2/VECtor/",
+        //     ]
+        // },
+
     ]
 }
