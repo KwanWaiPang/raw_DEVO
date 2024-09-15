@@ -131,14 +131,14 @@ def process_dirs(indirs, DELTA_MS=None):
             f.write(f"{t}\n")
         f.close()
 
-        # 获取GT pose（注意时间以微妙为单位！）
-        # writing pose to file(获取真值pose)
-        posetopic='/gt/pose'
-        T_marker_cam0 = np.eye(4)
-        T_cam0_cam1 = np.eye(4)
-        poses, tss_gt_us = read_poses_from_rosbag(bag, posetopic, T_marker_cam0, T_cam0_cam1=T_cam0_cam1)
-        assert sorted(tss_gt_us) == tss_gt_us
-        write_gt_stamped(poses, tss_gt_us, os.path.join(indir, f"raw_gt_stamped_us.txt"))#保存真值pose（注意此时还是微妙为单位）
+        # # 获取GT pose（注意时间以微妙为单位！）
+        # # writing pose to file(获取真值pose)
+        # posetopic='/gt/pose'
+        # T_marker_cam0 = np.eye(4)
+        # T_cam0_cam1 = np.eye(4)
+        # poses, tss_gt_us = read_poses_from_rosbag(bag, posetopic, T_marker_cam0, T_cam0_cam1=T_cam0_cam1)
+        # assert sorted(tss_gt_us) == tss_gt_us
+        # write_gt_stamped(poses, tss_gt_us, os.path.join(indir, f"raw_gt_stamped_us.txt"))#保存真值pose（注意此时还是微妙为单位）
 
         #读取events数据的起始时间
         loweventtopic='/davis/left/events'
@@ -148,7 +148,8 @@ def process_dirs(indirs, DELTA_MS=None):
             t0_evs = read_t0us_evs_from_rosbag(bag, loweventtopic)
 
         # 选择最小的时间戳作为起始时间
-        t0_us = np.minimum(np.minimum(tss_gt_us[0], tss_imgs_us[0]), t0_evs)
+        # t0_us = np.minimum(np.minimum(tss_gt_us[0], tss_imgs_us[0]), t0_evs)
+        t0_us = np.minimum(tss_imgs_us[0], t0_evs)
         f = open(os.path.join(indir, f"t0_us.txt"), 'w')
         f.write(f"{t0_us}\n")#将起始时间保存到文件中
         f.close()
@@ -160,14 +161,14 @@ def process_dirs(indirs, DELTA_MS=None):
             f.write(f"{t:.012f}\n")
         f.close()
 
-        tss_gt_us = [t - t0_us for t in tss_gt_us]#减去起始时间，获得的就是相对时间
-        write_gt_stamped(poses, tss_gt_us, os.path.join(indir, f"gt_stamped_us.txt"))#保存真值pose(此处跟上面不一样是相对时间)
+        # tss_gt_us = [t - t0_us for t in tss_gt_us]#减去起始时间，获得的就是相对时间
+        # write_gt_stamped(poses, tss_gt_us, os.path.join(indir, f"gt_stamped_us.txt"))#保存真值pose(此处跟上面不一样是相对时间)
 
         # TODO: write events (and also substract t0_evs)
         # 清空imgs，释放内存
         del imgs
         #清空poses，释放内存
-        del poses        
+        # del poses        
         #保存events数据（davis346）
         h5outfile_davis346 = os.path.join(indir, f"evs_left.h5")#保存events数据的路径
         # evs = read_evs_from_rosbag_witht0(bag, loweventtopic, t0_us=t0_us, H=H, W=W)
@@ -197,7 +198,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    record_file = os.path.join(args.indir, "record_processed_mono_hku.txt")
+    record_file = os.path.join(args.indir, "record_processed_vector.txt")
     if os.path.exists(record_file):
         with open(record_file, "r") as f:
             has_processed_dirs = f.readlines()

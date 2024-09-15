@@ -37,3 +37,10 @@ conda activate raw_devo
 
 python scripts/pp_vector_rosbag.py --indir=/media/lfl-data2/VECtor/
 ～～～
+
+# 处理FPV数据集
+～～～
+conda activate raw_devo
+
+python scripts/pp_fpv.py --indir=/media/lfl-data2/UZH-FPV/
+～～～
