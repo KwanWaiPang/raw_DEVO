@@ -3,6 +3,14 @@ from pathlib import Path
 import torch
 from devo.config import cfg
 
+# 处理服务器中evo的可视化问题
+import evo
+from evo.tools.settings import SETTINGS
+SETTINGS['plot_backend'] = 'Agg'
+
+import sys
+sys.path.append('/home/gwp/raw_DEVO')#要导入
+
 from utils.load_utils import load_gt_us, fpv_evs_iterator
 from utils.eval_utils import assert_eval_config, run_voxel
 from utils.eval_utils import log_results, write_raw_results, compute_median_results
@@ -22,6 +30,8 @@ def evaluate(config, args, net, train_step=None, datapath="", split_file=None,
         config.merge_from_file("config/eval_fpv.yaml")
         
     scenes = open(split_file).read().split()
+
+    print("the number of scenes is", len(scenes),"the input scenes are: ", scenes)
 
     results_dict_scene, figures = {}, {}
     all_results = []
@@ -52,7 +62,7 @@ def evaluate(config, args, net, train_step=None, datapath="", split_file=None,
             for trial in range(trials):
                 # estimated trajectory
                 datapath_val = os.path.join(datapath, scene)
-                tss_traj_us, traj_hf = load_gt_us(os.path.join(datapath_val, f"stamped_groundtruth_us_cam.txt"))
+                tss_traj_us, traj_hf = load_gt_us(os.path.join(datapath_val, f"stamped_groundtruth_us.txt"))
 
                 # run the slam system
                 traj_est, tstamps, flowdata = run_voxel(datapath_val, config, net, viz=viz, 
@@ -65,7 +75,9 @@ def evaluate(config, args, net, train_step=None, datapath="", split_file=None,
                 hyperparam = (train_step, net, dataset_name, scene, trial, cfg, args)
                 all_results, results_dict_scene, figures, outfolder = log_results(data, hyperparam, all_results, results_dict_scene, figures, 
                                                                     plot=plot, save=save, return_figure=return_figure, stride=stride,
-                                                                    expname=args.expname)
+                                                                    _n_to_align=-1,
+                                                                    expname=f"{scene}"#args.expname
+                                                                    )
                 
                 if viz_flow:
                     viz_flow_inference(outfolder, flowdata)

@@ -1314,7 +1314,8 @@ def fpv_evs_iterator(scenedir, stride=1, timing=False, dT_ms=None, H=260, W=346,
     evs = np.asarray(np.loadtxt(evs_file[0], delimiter=" ")) # (N, 4) with [ts_sec, x, y, p]
     evs[:, 0] = evs[:, 0] * 1e6
 
-    t_offset_us = np.loadtxt(os.path.join(scenedir, "t_offset_us.txt")).astype(np.int64)
+    # t_offset_us = np.loadtxt(os.path.join(scenedir, "t_offset_us.txt")).astype(np.int64)
+    t_offset_us = np.loadtxt(os.path.join(scenedir, "t0_us.txt")).astype(np.int64)
     evs[:, 0] -= t_offset_us
 
     rect_file = osp.join(scenedir, "rectify_map.h5")

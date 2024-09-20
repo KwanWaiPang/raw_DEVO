@@ -85,8 +85,8 @@ def process_dirs(indirs, DELTA_MS=None):
         imgs = imgs[img_start_idx:]
 
         # creating rectify map（进行去除失真）
-        intrinsics = [327.32749, 327.46184, 304.97749, 235.37621, 
-                    -0.031982, 0.041966, -0.000507, -0.001031]
+        intrinsics = [886.191073, 886.591633, 610.578911, 514.59271, 
+                    -0.315760, 0.104955, 0.000320,  -0.000156]
         fx, fy, cx, cy, k1, k2, p1, p2 = intrinsics
         Kdist =  np.zeros((3,3))   
         Kdist[0,0] = fx
