@@ -148,6 +148,21 @@
             ]
         },
 
+
+        {
+            "name": "pp_mvsec",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts/pp_mvsec_rosbag.py",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "0"
+            },
+            "args":[
+                "--indir=/media/lfl-data2/MVSEC/",
+            ]
+        },
+
         
 
     ]

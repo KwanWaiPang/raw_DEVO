@@ -44,3 +44,10 @@ conda activate raw_devo
 
 python scripts/pp_fpv.py --indir=/media/lfl-data2/UZH-FPV/
 ～～～
+
+# 处理MVSEC数据集
+～～～
+conda activate raw_devo
+
+python scripts/pp_mvsec_rosbag.py --indir=/media/lfl-data2/MVSEC/
+～～～
