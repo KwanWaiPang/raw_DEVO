@@ -2,6 +2,14 @@ import os
 import torch
 from devo.config import cfg
 
+# 处理服务器中evo的可视化问题
+import evo
+from evo.tools.settings import SETTINGS
+SETTINGS['plot_backend'] = 'Agg'
+
+import sys
+sys.path.append('/home/gwp/raw_DEVO')#要导入
+
 from utils.load_utils import load_mvsec_traj, mvsec_evs_iterator
 from utils.eval_utils import assert_eval_config, run_voxel
 from utils.eval_utils import log_results, write_raw_results, compute_median_results
@@ -30,12 +38,17 @@ def evaluate(config, args, net, train_step=None, datapath="", split_file=None,
 
         for trial in range(trials):
             # estimated trajectory
-            datapath_val = os.path.join(datapath, scene)
+            datapath_val = os.path.join(datapath, scene)#注意路径
+
+            import numpy as np
+            t0_us = np.loadtxt(os.path.join(datapath_val, f"t0_us.txt"), delimiter=',', usecols=0)
 
             # run the slam system
             traj_est, tstamps, flowdata = run_voxel(datapath_val, config, net, viz=viz, 
                                           iterator=mvsec_evs_iterator(datapath_val, side=side, stride=stride, timing=timing, H=H, W=W),
                                           timing=timing, H=H, W=W, viz_flow=viz_flow)
+            
+            tstamps = tstamps + t0_us#加上t0_us的时间
 
             # load traj
             tss_traj_us, traj_hf = load_mvsec_traj(datapath_val)

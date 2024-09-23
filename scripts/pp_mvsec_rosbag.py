@@ -106,12 +106,14 @@ def process_seq_mvsec(indirs, side="left", DELTA_MS=None):
         Kdist, distcoeffs = get_calib_mvsec(side)
 
         # undistorting images
-        K_new, roi = cv2.getOptimalNewCameraMatrix(Kdist, distcoeffs, (W, H), alpha=0, newImgSize=(W, H))
+        # K_new, roi = cv2.getOptimalNewCameraMatrix(Kdist, distcoeffs, (W, H), alpha=0, newImgSize=(W, H))
+        K_new = cv2.fisheye.estimateNewCameraMatrixForUndistortRectify(Kdist, distcoeffs, (W, H), np.eye(3), balance=0)#DEVO的写法
         f = open(os.path.join(indir, f"calib_undist_{side}.txt"), 'w')
         f.write(f"{K_new[0,0]} {K_new[1,1]} {K_new[0,2]} {K_new[1,2]}")
         f.close()
 
-        img_mapx, img_mapy = cv2.initUndistortRectifyMap(Kdist, distcoeffs, np.eye(3), K_new, (W, H), cv2.CV_32FC1) 
+        # img_mapx, img_mapy = cv2.initUndistortRectifyMap(Kdist, distcoeffs, np.eye(3), K_new, (W, H), cv2.CV_32FC1) 
+        img_mapx, img_mapy = cv2.fisheye.initUndistortRectifyMap(Kdist, distcoeffs, np.eye(3), K_new, (W, H), cv2.CV_32FC1)#DEVO的写法
         # undistorting images
         pbar = tqdm.tqdm(total=len(imgs)-1)
         for i, img in enumerate(imgs):
@@ -124,7 +126,7 @@ def process_seq_mvsec(indirs, side="left", DELTA_MS=None):
         # writing pose to file(写真实位姿到文件中)
         gtbag_path = os.path.join(indir, f"../{seq[:-5]}_gt.bag")#获取真值bag的路径
         gtbag = rosbag.Bag(gtbag_path, "r")#读取真值bag
-        posetopic ='/davis/left/odometry' #/davis/left/pose
+        posetopic ='/davis/left/pose' #/davis/left/pose
         if side == "left":
             T_cam0_cam1 = np.eye(4)
         else:

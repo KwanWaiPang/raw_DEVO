@@ -559,7 +559,8 @@ def video_iterator_parallel(imagedir, tss_file=None, ext=".png", intrinsics=[320
 
 def load_mvsec_traj(scenedir, side="left"):
     from utils.pose_utils import poses_hom_to_quatlist
-    gt_fname = os.path.join(scenedir, scenedir[:-5].split("/")[-1]+"_gt.hdf5")
+    # gt_fname = os.path.join(scenedir, scenedir[:-5].split("/")[-1]+"_gt.hdf5")
+    gt_fname =  scenedir[:-5]+"_gt.hdf5"
     datain = h5py.File(gt_fname, 'r')
 
     traj_hf = datain["davis"][side]["pose"][:] # (N, 4, 4)
@@ -833,7 +834,8 @@ def mvsec_evs_iterator(scenedir, side="left", stride=1, dT_ms=None, timing=False
     fx, fy, cx, cy = intrinsics
     intrinsics = torch.from_numpy(np.array([fx, fy, cx, cy]))
 
-    h5in = glob.glob(os.path.join(scenedir, f"*_data.hdf5"))
+    # h5in = glob.glob(os.path.join(scenedir, f"*_data.hdf5"))
+    h5in = glob.glob(scenedir + ".hdf5")
     assert len(h5in) == 1
     datain = h5py.File(h5in[0], 'r')
 

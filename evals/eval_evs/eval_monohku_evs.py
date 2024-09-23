@@ -84,7 +84,7 @@ if __name__ == '__main__':
     import argparse
     # 导入一系列参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default="config/eval_davis240c.yaml")#参数文件
+    parser.add_argument('--config', default="config/eval_hku.yaml")#参数文件
     parser.add_argument('--datapath', default='', help='path to dataset directory')
     parser.add_argument('--weights', default="DEVO.pth")
     parser.add_argument('--val_split', type=str, default="splits/monohku/monohku_val.txt") # 验证集的路径,有它来决定验证的序列

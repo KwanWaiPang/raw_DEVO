@@ -1,0 +1,14 @@
+config: config/eval_mvsec.yaml
+datapath: /media/lfl-data2/MVSEC
+expname: ''
+plot: true
+return_figs: false
+save_trajectory: true
+side: left
+stride: 1
+timing: false
+trials: 1
+val_split: /home/gwp/raw_DEVO/splits/mvsec/mvsec_val_debug.txt
+viz: false
+viz_flow: false
+weights: /home/gwp/DEVO/DEVO.pth

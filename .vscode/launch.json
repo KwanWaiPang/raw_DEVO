@@ -144,7 +144,7 @@
                 "--val_split=/home/gwp/raw_DEVO/splits/fpv/fpv_val_small.txt",
                 "--stride=1",
                 "--trials=1",
-                "--side=dvxplorer"
+                // "--side=dvxplorer"
             ]
         },
 
@@ -160,6 +160,24 @@
             },
             "args":[
                 "--indir=/media/lfl-data2/MVSEC/",
+            ]
+        },
+
+        {
+            "name": "mvsec",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "evals/eval_evs/eval_mvsec_evs.py",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "2"
+            },
+            "args":[
+                "--datapath=/media/lfl-data2/MVSEC",
+                "--weights=/home/gwp/DEVO/DEVO.pth",
+                "--val_split=/home/gwp/raw_DEVO/splits/mvsec/mvsec_val_debug.txt",
+                // "--stride=1",
+                "--trials=1",
             ]
         },
 
