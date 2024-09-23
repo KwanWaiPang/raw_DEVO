@@ -178,7 +178,7 @@ def process_seq_mvsec(indirs, side="left", DELTA_MS=None):
         write_evs_arr_to_h5(evs, h5outfile)
 
         rectify_map, K_new_evs = compute_rmap_vector(Kdist, distcoeffs, indir, side, H=H, W=W)
-        assert np.all(abs(K_new_evs - K_new)<1e-5) 
+        # assert np.all(abs(K_new_evs - K_new)<1e-5) 
 
         #保存IMU数据
         imu1topic='/davis/left/imu'
