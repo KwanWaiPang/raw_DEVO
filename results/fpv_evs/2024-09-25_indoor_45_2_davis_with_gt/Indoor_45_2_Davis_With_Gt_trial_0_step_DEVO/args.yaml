@@ -1,0 +1,14 @@
+config: config/eval_fpv.yaml
+datapath: /media/lfl-data2/UZH-FPV
+expname: ''
+plot: true
+return_figs: false
+save_trajectory: true
+side: left
+stride: 1
+timing: false
+trials: 1
+val_split: /home/gwp/raw_DEVO/splits/fpv/fpv_val_small.txt
+viz: false
+viz_flow: false
+weights: /home/gwp/DEVO/DEVO.pth

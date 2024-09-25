@@ -156,7 +156,7 @@ def process_seq_fpv(indirs):
         # 2) undistorting events => visualize
         xs, ys = np.meshgrid(np.arange(W), np.arange(H))
         xys = np.stack((xs, ys), axis=-1) # (H, W, 2)
-        xys_remap = cv2.fisheye.undistortPoints(xys.astype(np.float32), Kdist, dist_coeffs, R=np.eye(3), P=Knew)
+        xys_remap = cv2.fisheye.undistortPoints(xys.astype(np.float32), Kdist, dist_coeffs, R=np.eye(3), P=Knew)#鱼眼相机的模型
 
         # 4) Create rectify map for events
         h5outfile = os.path.join(indir, f"rectify_map.h5")
