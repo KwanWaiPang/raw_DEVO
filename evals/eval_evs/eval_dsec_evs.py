@@ -19,7 +19,7 @@ H, W = 480, 640
 
 @torch.no_grad()  #表示该函数不会计算梯度（由于是导入网络权重的）
 def evaluate(config, args, net, train_step=None, datapath="", split_file=None, 
-             trials=1, stride=1, plot=False, save=False, return_figure=False, viz=False, timing=False, side='left', viz_flow=False):
+             trials=1, stride=1, plot=False, save=False, return_figure=False, viz=False, timing=False, side='left', viz_flow=False, sota_comparison=False):
     dataset_name = "dsec_evs"
     assert side == "davis346" or side == "dvxplorer"
 
@@ -71,6 +71,19 @@ def evaluate(config, args, net, train_step=None, datapath="", split_file=None,
                                                                    expname=f"{scene}_{side}"#args.expname
                                                                    )
             
+            if sota_comparison: #如果需要与sota进行比较
+                tss_gt_s, traj_gt = load_gt_us(os.path.join(datapath_val, f"trajectory/stamped_groundtruth_alignment.txt"))#用对齐后的轨迹
+                tss_esvoaa_s, traj_esvoaa = load_gt_us(os.path.join(datapath_val, f"trajectory/stamped_traj_estimate_ours.txt"))#ESVOAA的轨迹
+                tss_esvo_s, traj_esvo = load_gt_us(os.path.join(datapath_val, f"trajectory/stamped_traj_estimate_ori.txt"))#ESVO的轨迹
+                tss_gt_us = tss_gt_s*1e6 - t0_us#减去t0_us的时间
+                tss_esvoaa_us = tss_esvoaa_s*1e6 - t0_us#减去t0_us的时间
+                tss_esvo_us = tss_esvo_s*1e6 - t0_us#减去t0_us的时间
+                from utils.eval_utils import plot_four_trajectory
+                pdfname = f"results/{dataset_name}/{scene}.pdf"
+                plot_four_trajectory((traj_est, tstamps/1e6), (traj_esvoaa, tss_esvoaa_us/1e6), (traj_esvo, tss_esvo_us/1e6), (traj_gt, tss_gt_us/1e6), 
+                            f"Comparison DEVO with ESVO and ESVO_AA in {scene}",
+                            pdfname, align=True, correct_scale=True, max_diff_sec=1.0)
+            
             if viz_flow:
                 viz_flow_inference(outfolder, flowdata)
             
@@ -92,6 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('--config', default="config/eval_dsec.yaml")#参数文件
     parser.add_argument('--datapath', default='', help='path to dataset directory')
     parser.add_argument('--weights', default="DEVO.pth")
+    parser.add_argument('--sota_comparison', action="store_true") #是否与sota进行比较
     parser.add_argument('--val_split', type=str, default="splits/monohku/monohku_val.txt") # 验证集的路径,有它来决定验证的序列
     parser.add_argument('--trials', type=int, default=5)# 试验次数
     parser.add_argument('--plot', action="store_true")
@@ -120,7 +134,7 @@ if __name__ == '__main__':
     args.plot = True #人为设置为True
     val_results, val_figures = evaluate(cfg, args, args.weights, datapath=args.datapath, split_file=args.val_split, trials=args.trials, \
                        plot=args.plot, save=args.save_trajectory, return_figure=args.return_figs, viz=args.viz,timing=args.timing, \
-                        stride=args.stride, side=args.side, viz_flow=args.viz_flow)
+                        stride=args.stride, side=args.side, viz_flow=args.viz_flow, sota_comparison=args.sota_comparison)
     
     print("val_results= \n")
     for k in val_results:

@@ -466,3 +466,42 @@ def compute_median_results(results, all_results, dataset_name, outfolder=None):
             f.write('\n\n')
 
     return results_dict
+
+
+from devo.plot_utils import make_traj, best_plotmode
+from evo.tools import plot
+from evo.core.geometry import GeometryException
+import matplotlib.pyplot as plt
+def plot_four_trajectory(pred_traj, ESVO_AA_traj, ESVO_traj, gt_traj=None, title="", filename="", align=True, correct_scale=True, max_diff_sec=0.01):
+    pred_traj = make_traj(pred_traj)
+
+    # 转换为PoseTrajectory3D
+    ESVO_AA_traj = make_traj(ESVO_AA_traj) # ESVO_AA的轨迹
+    ESVO_traj= make_traj(ESVO_traj) # ESVO的轨迹
+
+    if gt_traj is not None:
+        gt_traj = make_traj(gt_traj)
+        gt_traj, pred_traj = sync.associate_trajectories(gt_traj, pred_traj, max_diff=max_diff_sec)
+
+        if align:
+            try:
+                pred_traj.align(gt_traj, correct_scale=correct_scale)
+            except GeometryException as e:
+                print("Plotting error:", e)
+
+    plot_collection = plot.PlotCollection("PlotCol")
+    fig = plt.figure(figsize=(8, 8))
+    plot_mode = best_plotmode(gt_traj if (gt_traj is not None) else pred_traj)
+    ax = plot.prepare_axis(fig, plot_mode)
+    ax.set_title(title)
+    if gt_traj is not None:
+        plot.traj(ax, plot_mode, gt_traj, '--', 'gray', "Ground Truth")
+    plot.traj(ax, plot_mode, pred_traj, '-', 'blue', "DEVO")
+    # 下面两个是新增的
+    plot.traj(ax, plot_mode, ESVO_AA_traj, '-', 'green', "ESVO_AA")
+    plot.traj(ax, plot_mode, ESVO_traj, '-', 'red', "ESVO")
+    
+    plot_collection.add_figure("traj (error)", fig)
+    plot_collection.export(filename, confirm_overwrite=False)
+    plt.close(fig=fig)
+    print(f"Saved {filename}")

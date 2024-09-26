@@ -1,3 +1,5 @@
 dsec_zurich_city_04_a
 dsec_zurich_city_04_b
 dsec_zurich_city_04_c
+dsec_zurich_city_04_d
+dsec_zurich_city_04_e

@@ -210,6 +210,7 @@
                 "--weights=/home/gwp/DEVO/DEVO.pth",
                 "--val_split=/home/gwp/raw_DEVO/splits/dsec/dsec_val.txt",
                 "--trials=1",
+                "--sota_comparison",
             ]
         },
 
