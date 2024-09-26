@@ -51,3 +51,10 @@ conda activate raw_devo
 
 python scripts/pp_mvsec_rosbag.py --indir=/media/lfl-data2/MVSEC/
 ～～～
+
+# 处理DSEC数据集
+～～～
+conda activate raw_devo
+
+python scripts/pp_dsec.py --indir=/media/lfl-data2/DSEC/
+～～～

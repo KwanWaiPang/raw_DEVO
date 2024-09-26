@@ -1,0 +1,14 @@
+config: config/eval_dsec.yaml
+datapath: /media/lfl-data2/DSEC
+expname: ''
+plot: true
+return_figs: false
+save_trajectory: true
+side: dvxplorer
+stride: 1
+timing: false
+trials: 1
+val_split: /home/gwp/raw_DEVO/splits/dsec/dsec_val.txt
+viz: false
+viz_flow: false
+weights: /home/gwp/DEVO/DEVO.pth
