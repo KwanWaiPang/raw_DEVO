@@ -1326,6 +1326,65 @@ def dsec_evs_iterator(indir, side="davis346", stride=1, timing=False, dT_ms=None
         yield voxel.cuda(), intrinsics.cuda(), ts_us
 
 
+#读取ECMD的数据
+def ecmd_evs_iterator(indir, side="davis346", stride=1, timing=False, dT_ms=None, H=480, W=640):
+    if timing:
+        t0 = torch.cuda.Event(enable_timing=True)
+        t1 = torch.cuda.Event(enable_timing=True)
+        t0.record()
+
+    # 获取内参
+    intrinsics = np.loadtxt(os.path.join(indir, f"calib_undist_{side}.txt"))
+    assert len(intrinsics) == 4
+    rectify_map = read_rmap(os.path.join(indir, f"rectify_map_{side}.h5"), H=H, W=W)#去除失真的参数？
+
+    # 从h5文件中读取事件数据
+    fnameh5 = os.path.join(indir, f"evs_{side}.h5")
+    datain = h5py.File(fnameh5, 'r') # (events, ms_to_idx)
+    evs_slicer = EventSlicer(datain)
+
+    tss_imgs_us = np.loadtxt(os.path.join(indir, f"tss_imgs_us_davis346.txt"))#图像的时间戳(注意是图像的时间)
+
+    trafos = []
+    hotpixfilter = False
+    if hotpixfilter:
+        trafos.append(RemoveHotPixelsVoxel(num_stds=10))
+    if dT_ms is None:
+        dT_ms = np.mean(np.diff(tss_imgs_us)) / 1e3 #平均时间间隔，单位为ms
+
+    imstart, imstop = 0, -1  
+    # # [DEBUG]
+    # imstart, imstop = get_imstart_imstop_hku(indir)
+    # del_idxs = None
+    # if "HDR_circle" in indir:
+    #     del_idxs = [1349, 1350, 1351, 1352, 1353, 1354]
+    # elif "HDR_slow" in indir:
+    #     del_idxs = [3238, 3239, 3240, 3241, 3242]
+    # else:
+    #     tss_imgs_us = tss_imgs_us[imstart:imstop:stride]
+    
+    # if del_idxs is not None:
+    #     del_idxs.extend(np.arange(0, imstart).tolist())
+    #     del_idxs.extend(np.arange(imstop, len(tss_imgs_us)).tolist())
+    #     tss_imgs_us = np.delete(tss_imgs_us, del_idxs)
+    #     tss_imgs_us = tss_imgs_us[::stride]
+    # # end [DEBUG]
+
+    data_list = get_real_data_list(evs_slicer, tss_imgs_us, intrinsics, rectify_map, trafos, dT_ms, Horig=H, Worig=W)
+
+    datain.close()
+
+    if timing:  
+        t1.record()
+        torch.cuda.synchronize()
+        dt = t0.elapsed_time(t1)/1e3
+        print(f"Preloaded {len(data_list)} dsec voxels in {dt} secs, e.g. {len(data_list)/dt} FPS")
+    print(f"Preloaded {len(data_list)} dsec voxels, imstart={imstart}, imstop={imstop}, stride={stride}, dT_ms={dT_ms} on {indir}")
+
+    for (voxel, intrinsics, ts_us) in data_list:
+        yield voxel.cuda(), intrinsics.cuda(), ts_us
+
+
 # def hku_evs_loader(indir, side, stride=1, timing=False, dT_ms=None, H=260, W=346):
 #     if timing:
 #         t0 = torch.cuda.Event(enable_timing=True)

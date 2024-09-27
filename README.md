@@ -58,3 +58,10 @@ conda activate raw_devo
 
 python scripts/pp_dsec.py --indir=/media/lfl-data2/DSEC/
 ～～～
+
+# 处理ECMD数据集
+～～～
+conda activate raw_devo
+
+python scripts/pp_ecmd.py --indir=/media/lfl-data2/ECMD/
+～～～
