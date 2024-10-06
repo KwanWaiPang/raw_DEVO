@@ -1,0 +1,14 @@
+config: config/eval_davis240c.yaml
+datapath: /media/lfl-data2/davis240c/
+expname: ''
+plot: true
+return_figs: false
+save_trajectory: true
+side: left
+stride: 1
+timing: false
+trials: 1
+val_split: splits/davis240c/davis240c_val.txt
+viz: false
+viz_flow: false
+weights: /media/lfl-data2/DEVO_base_2gpu_ckp/240000.pth

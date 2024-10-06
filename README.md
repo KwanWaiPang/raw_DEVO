@@ -11,6 +11,20 @@ python evals/eval_evs/eval_hku_evs.py --datapath=/home/gwp/DEVO/datasets/HKU_dat
 ~~~
 conda activate raw_devo
 python evals/eval_evs/eval_davis240c_evs.py --datapath=/media/lfl-data2/davis240c/ --weights="/home/gwp/DEVO/DEVO.pth" --stride=1 --trials=1 --expname=davis240c
+
+CUDA_VISIBLE_DEVICES=0 python evals/eval_evs/eval_davis240c_evs.py \
+--datapath=/media/lfl-data2/davis240c/ \
+--weights=/home/gwp/DEVO/DEVO.pth \
+--stride=1 \
+--trials=1
+
+
+CUDA_VISIBLE_DEVICES=0 python evals/eval_evs/eval_davis240c_evs.py \
+--datapath=/media/lfl-data2/davis240c/ \
+--weights=/media/lfl-data2/DEVO_base_2gpu_ckp/240000.pth \
+--stride=1 \
+--trials=1
+
 ~~~
 
 # 测试Mono-HKU数据集
@@ -43,6 +57,13 @@ python scripts/pp_vector_rosbag.py --indir=/media/lfl-data2/VECtor/
 conda activate raw_devo
 
 python scripts/pp_fpv.py --indir=/media/lfl-data2/UZH-FPV/
+
+CUDA_VISIBLE_DEVICES=0 python evals/eval_evs/eval_fpv_evs.py \
+--datapath=/media/lfl-data2/UZH-FPV/ \
+--weights=/media/lfl-data2/DEVO_base_2gpu_ckp/240000.pth \
+--stride=1 \
+--trials=1
+
 ～～～
 
 # 处理MVSEC数据集

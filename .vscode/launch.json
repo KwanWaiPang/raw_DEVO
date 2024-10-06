@@ -43,7 +43,7 @@
             "program": "evals/eval_evs/eval_davis240c_evs.py",
             "console": "integratedTerminal",
             "env": {
-                "CUDA_VISIBLE_DEVICES": "2"
+                "CUDA_VISIBLE_DEVICES": "0"
             },
             "args":[
                 "--datapath=/media/lfl-data2/davis240c/",
