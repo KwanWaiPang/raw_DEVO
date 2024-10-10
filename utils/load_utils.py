@@ -969,7 +969,8 @@ def vector_evs_iterator(indir, side="left", stride=1, dT_ms=None, timing=False, 
     rectify_map = read_rmap(os.path.join(indir, f"rectify_map_{side}.h5"), H=H, W=W)
 
     seq = indir.split("/")[-1]
-    fnameh5 = os.path.join(indir, f"{seq}1.synced.{side}_event.hdf5")
+    # fnameh5 = os.path.join(indir, f"{seq}1.synced.{side}_event.hdf5")
+    fnameh5 = os.path.join(indir, f"{seq}.synced.{side}_event.hdf5")
     datain = h5py.File(fnameh5, 'r') # (events, ms_to_idx, t_offset)
     evs_slicer = EventSlicer(datain)
 

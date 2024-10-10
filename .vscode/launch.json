@@ -246,6 +246,24 @@
                 "--side=dvxplorer"
             ]
         },
+
+        {
+            "name": "vector",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "evals/eval_evs/eval_vector_evs.py",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "2"
+            },
+            "args":[
+                "--datapath=/media/lfl-data2/VECtor_h5/",
+                "--weights=/home/gwp/DEVO/DEVO.pth",
+                "--val_split=splits/vector/vector_val.txt",
+                // "--stride=1",
+                "--trials=1",
+            ]
+        },
         
 
     ]

@@ -86,3 +86,10 @@ conda activate raw_devo
 
 python scripts/pp_ecmd.py --indir=/media/lfl-data2/ECMD/
 ～～～
+
+# 测试vector数据集
+～～～
+conda activate raw_devo
+
+CUDA_VISIBLE_DEVICES=2 python evals/eval_evs/eval_vector_evs.py --datapath=/media/lfl-data2/VECtor_h5/ --weights=/home/gwp/DEVO/DEVO.pth --val_split=splits/vector/vector_val.txt --trials=1
+～～～

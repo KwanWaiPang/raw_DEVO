@@ -2,6 +2,14 @@ import os
 import torch
 from devo.config import cfg
 
+# 处理服务器中evo的可视化问题
+import evo
+from evo.tools.settings import SETTINGS
+SETTINGS['plot_backend'] = 'Agg'
+
+import sys
+sys.path.append('/home/gwp/raw_DEVO')#要导入
+
 from utils.load_utils import load_gt_us, vector_evs_iterator
 from utils.eval_utils import assert_eval_config, run_voxel
 from utils.eval_utils import log_results, write_raw_results, compute_median_results
