@@ -92,6 +92,7 @@ def tumvie_evs_iterator(scenedir, camID=2, stride=1, rectify_map=None, H=720, W=
     evs = h5py.File(h5file, "r")
     evs_slicer = EventSlicer(evs)
 
+    # 读原始的时间戳而非相对时间戳
     tss_imgs_us = sorted(np.loadtxt(os.path.join(scenedir, f"{side}_images_undistorted", f"image_timestamps_{side}.txt")))
     if dT_ms is None:
         dT_ms = np.diff(tss_imgs_us).mean()/1e3   

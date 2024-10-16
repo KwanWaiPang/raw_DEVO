@@ -32,7 +32,7 @@ def evaluate(config, args, net, train_step=None, datapath="", split_file=None,
 
         for trial in range(trials):
             datapath_val = os.path.join(datapath, scene)
-            traj_hf_path = os.path.join(datapath_val, "mocap_data.txt")
+            traj_hf_path = os.path.join(datapath_val, "mocap_data.txt") #真值pose
 
             # run the slam system
             traj_est, tstamps, flowdata = run_voxel(datapath_val, config, net, viz=viz, 
