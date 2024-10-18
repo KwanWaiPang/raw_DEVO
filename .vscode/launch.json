@@ -11,12 +11,12 @@
             "program": "evals/eval_evs/eval_hku_evs.py",
             "console": "integratedTerminal",
             "env": {
-                "CUDA_VISIBLE_DEVICES": "2"
+                "CUDA_VISIBLE_DEVICES": "0"
             },
             "args":[
-                "--datapath=/home/gwp/DEVO/datasets/HKU_dataset",
+                "--datapath=/media/lfl-data2/Steroe_HKU/",
                 "--weights=/home/gwp/DEVO/DEVO.pth",
-                "--stride=1",
+                // "--stride=1",
                 "--trials=1",
                 "--expname=gwphku_debug_test"
             ]
@@ -101,19 +101,19 @@
         //     ]
         // },
 
-        {
-            "name": "pp_vector",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "scripts/pp_vector_rosbag.py",
-            "console": "integratedTerminal",
-            "env": {
-                "CUDA_VISIBLE_DEVICES": "2"
-            },
-            "args":[
-                "--indir=/media/lfl-data2/VECtor/",
-            ]
-        },
+        // {
+        //     "name": "pp_vector",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "program": "scripts/pp_vector_rosbag.py",
+        //     "console": "integratedTerminal",
+        //     "env": {
+        //         "CUDA_VISIBLE_DEVICES": "2"
+        //     },
+        //     "args":[
+        //         "--indir=/media/lfl-data2/VECtor/",
+        //     ]
+        // },
 
         // {
         //     "name": "pp_fpv",
@@ -149,19 +149,19 @@
         },
 
 
-        {
-            "name": "pp_mvsec",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "scripts/pp_mvsec_rosbag.py",
-            "console": "integratedTerminal",
-            "env": {
-                "CUDA_VISIBLE_DEVICES": "0"
-            },
-            "args":[
-                "--indir=/media/lfl-data2/MVSEC/",
-            ]
-        },
+        // {
+        //     "name": "pp_mvsec",
+        //     "type": "debugpy",
+        //     "request": "launch",
+        //     "program": "scripts/pp_mvsec_rosbag.py",
+        //     "console": "integratedTerminal",
+        //     "env": {
+        //         "CUDA_VISIBLE_DEVICES": "0"
+        //     },
+        //     "args":[
+        //         "--indir=/media/lfl-data2/MVSEC/",
+        //     ]
+        // },
 
         {
             "name": "mvsec",
