@@ -1,0 +1,14 @@
+config: config/eval_hku.yaml
+datapath: /media/lfl-data2/Steroe_HKU/
+expname: ''
+plot: true
+return_figs: false
+save_trajectory: true
+side: left
+stride: 1
+timing: false
+trials: 1
+val_split: splits/hku/hku_val.txt
+viz: false
+viz_flow: false
+weights: /home/gwp/DEVO/DEVO.pth

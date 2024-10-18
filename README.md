@@ -42,6 +42,9 @@ python evals/eval_evs/eval_monohku_evs.py --datapath=/media/lfl-data2/Mono_HKU/ 
 
 conda activate raw_devo
 
+CUDA_VISIBLE_DEVICES=0 python evals/eval_evs/eval_hku_evs.py --datapath=/media/lfl-data2/Steroe_HKU/ --weights=/home/gwp/DEVO/DEVO.pth --val_split=splits/hku/hku_val.txt --trials=1
+
+
 <!-- python scripts/pp_stereo_hku.py --indir=/media/lfl-data2/Steroe_HKU/ -->
 ~~~
 
