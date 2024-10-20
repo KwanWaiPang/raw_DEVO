@@ -1,0 +1,14 @@
+config: config/eval_hku.yaml
+datapath: /media/lfl-data2/flying_sequence/
+expname: mono_hku
+plot: true
+return_figs: false
+save_trajectory: true
+side: davis346
+stride: 1
+timing: false
+trials: 1
+val_split: splits/monohku/monohku_val_flying.txt
+viz: false
+viz_flow: false
+weights: /home/gwp/DEVO/DEVO.pth
