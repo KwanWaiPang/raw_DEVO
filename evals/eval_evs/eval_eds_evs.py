@@ -2,6 +2,14 @@ import os
 import torch
 from devo.config import cfg
 
+# 处理服务器中evo的可视化问题
+import evo
+from evo.tools.settings import SETTINGS
+SETTINGS['plot_backend'] = 'Agg'
+
+import sys
+sys.path.append('/home/gwp/raw_DEVO')#要导入
+
 from utils.load_utils import load_eds_traj, eds_evs_iterator
 from utils.eval_utils import assert_eval_config, run_voxel
 from utils.eval_utils import log_results, write_raw_results, compute_median_results
@@ -87,6 +95,10 @@ if __name__ == '__main__':
     print(cfg) 
 
     torch.manual_seed(1234)
+
+    # 人为设置一些参数
+    args.save_trajectory = True
+    args.plot = True #人为设置为True
 
     val_results, val_figures = evaluate(cfg, args, args.weights, datapath=args.datapath, split_file=args.val_split, trials=args.trials, \
                        plot=args.plot, save=args.save_trajectory, return_figure=args.return_figs, viz=args.viz, calib1=args.calib1, \
