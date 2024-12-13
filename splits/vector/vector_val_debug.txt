@@ -1,0 +1,4 @@
+corner_slow1
+desk_normal1
+sofa_fast1
+mountain_fast1

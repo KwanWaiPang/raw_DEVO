@@ -258,8 +258,9 @@
             },
             "args":[
                 "--datapath=/media/lfl-data2/VECtor_h5/",
-                "--weights=/home/gwp/DEVO/DEVO.pth",
-                "--val_split=splits/vector/vector_val.txt",
+                // "--weights=/home/gwp/DEVO/DEVO.pth",
+                "--weights=/media/lfl-data2/DEVO_ckp/DEVO_vector_retrain_all_240k/240000.pth", // devo的权重
+                "--val_split=splits/vector/vector_val_debug.txt",
                 // "--stride=1",
                 "--trials=1",
             ]
