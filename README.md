@@ -63,7 +63,7 @@ python evals/eval_evs/eval_monohku_evs.py --datapath=/media/lfl-data2/flying_seq
 
 conda activate raw_devo
 
-CUDA_VISIBLE_DEVICES=0 python evals/eval_evs/eval_hku_evs.py --datapath=/media/lfl-data2/Steroe_HKU/ --weights=/home/gwp/DEVO/DEVO.pth --val_split=splits/hku/hku_val.txt --trials=1
+CUDA_VISIBLE_DEVICES=2 python evals/eval_evs/eval_hku_evs.py --datapath=/media/lfl-data2/Stereo_HKU/ --weights=/home/gwp/DEVO/DEVO.pth --val_split=splits/hku/hku_val.txt --trials=5
 
 
 <!-- python scripts/pp_stereo_hku.py --indir=/media/lfl-data2/Steroe_HKU/ -->
@@ -87,6 +87,9 @@ CUDA_VISIBLE_DEVICES=0 python evals/eval_evs/eval_fpv_evs.py \
 --weights=/media/lfl-data2/DEVO_base_2gpu_ckp/240000.pth \
 --stride=1 \
 --trials=1
+
+
+CUDA_VISIBLE_DEVICES=3 python evals/eval_evs/eval_fpv_evs.py --datapath=/media/lfl-data2/UZH-FPV/ --weights=/home/gwp/DEVO/DEVO.pth --val_split=splits/fpv/fpv_val_debug.txt --trials=5
 
 ～～～
 
