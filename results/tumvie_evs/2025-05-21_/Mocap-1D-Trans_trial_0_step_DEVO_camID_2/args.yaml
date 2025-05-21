@@ -1,0 +1,15 @@
+camID: 2
+config: config/eval_tumvie.yaml
+datapath: /media/lfl-data2/TUM-VIE/
+expname: ''
+outdir: ''
+plot: true
+return_figs: false
+save_trajectory: true
+stride: 1
+timing: false
+trials: 1
+val_split: splits/tumvie/tumvie_val_small.txt
+viz: false
+viz_flow: false
+weights: /home/gwp/DEVO/DEVO.pth

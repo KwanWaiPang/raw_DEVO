@@ -102,3 +102,12 @@ conda activate raw_devo
 
 CUDA_VISIBLE_DEVICES=2 python evals/eval_evs/eval_vector_evs.py --datapath=/media/lfl-data2/VECtor_h5/ --weights=/home/gwp/DEVO/DEVO.pth --val_split=splits/vector/vector_val.txt --trials=1
 ～～～
+
+
+# 测试TUM-VIE数据集
+
+```bash
+conda activate raw_devo
+
+CUDA_VISIBLE_DEVICES=3 python evals/eval_evs/eval_tumvie_evs.py --datapath=/media/lfl-data2/TUM-VIE/ --weights=/home/gwp/DEVO/DEVO.pth --val_split=splits/tumvie/tumvie_val_small.txt --trials=5
+```

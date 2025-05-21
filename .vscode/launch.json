@@ -283,6 +283,24 @@
                 "--trials=1",
             ]
         },
+
+
+        {
+            "name": "tum-vie",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "evals/eval_evs/eval_tumvie_evs.py",
+            "console": "integratedTerminal",
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "3"
+            },
+            "args":[
+                "--datapath=/media/lfl-data2/TUM-VIE/",
+                "--weights=/home/gwp/DEVO/DEVO.pth",
+                "--val_split=splits/tumvie/tumvie_val_small.txt",
+                "--trials=1",
+            ]
+        },
         
 
     ]
